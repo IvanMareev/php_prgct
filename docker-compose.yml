@@ -46,7 +46,15 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: admin
-      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_CSRF_ENABLED: "False"
+      PGADMIN_CONFIG_WTF_CSRF_ENABLED: "False"
+      PGADMIN_CONFIG_SERVER_MODE: "True"
+      PGADMIN_CONFIG_SESSION_COOKIE_SAMESITE: "None"
+      PGADMIN_CONFIG_SESSION_COOKIE_SECURE: "True"
+      PGADMIN_CONFIG_ENABLE_PROXY_FIX: "True"
+      PGADMIN_CONFIG_PROXY_FIX_SETTINGS: "1,1,1,1,1"
+      PGADMIN_CONFIG_CHECK_REFERER: "False"
+      PGADMIN_CONFIG_PREFERRED_URL_SCHEME: '"https"'
     volumes:
       - ./pgadmin/servers.json:/pgadmin4/servers.json
     depends_on:
