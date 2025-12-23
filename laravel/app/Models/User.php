@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Enums\UserRole;
 
 /**
  * App\Models\User
@@ -52,7 +53,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'is_admin'
+        'role'
     ];
 
     protected $hidden = [
@@ -63,7 +64,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'is_admin' => 'bool'
+        'role' => UserRole::class,
     ];
 
     public function products(): HasMany
@@ -78,6 +79,6 @@ class User extends Authenticatable
 
     public function scopeWhereIsAdmin($query)
     {
-        return $query->where('is_admin', true);
+        return $query->where('role', UserRole::Admin->value);
     }
 }
