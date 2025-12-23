@@ -15,6 +15,7 @@ services:
       - app-network
 
   app:
+    user: "${UID}:${GID}"
     build:
       context: ./laravel
       dockerfile: Dockerfile
