@@ -54,6 +54,7 @@ class Post extends Model
         'thumbnail',
         'status',
         'views',
+        'user_id',
     ];
 
     protected $casts = [

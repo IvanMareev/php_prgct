@@ -3,17 +3,18 @@
 namespace Database\Seeders;
 
 use App\Models\Product;
+use App\Enums\UserRole;
 use App\Models\ProductImage;
 use App\Models\ProductReview;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Arr;
 
 class ProductSeeder extends Seeder
 {
     public function run(): void
     {
-        User::factory(5)
+        User::factory(10)
             ->has(
                 Product::factory(3)
                     ->has(ProductImage::factory(rand(1, 4)), 'images')
@@ -23,7 +24,11 @@ class ProductSeeder extends Seeder
                     )
             )
             ->create([
-                'is_admin' => true
+                'role' => Arr::random([
+                    UserRole::Admin->value,
+                    UserRole::User->value,
+                    UserRole::Moderator->value,
+                ]),
             ]);
     }
 }
