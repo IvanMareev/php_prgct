@@ -2,16 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole;
+use App\Http\Requests\Post\PostRequest;
+use App\Models\Post;
+use App\Models\User;
 use Illuminate\Http\Request;
-use App\Models\Post;    
 
 class PostController extends Controller
 {
 
     public function __construct()
     {
-        $admin = User::query()->inRandomOrder()->whereIsAdmin()->first();
-        auth()->login($admin);
+        $this->middleware(function ($request, $next) {
+            if (!auth()->check()) {
+                $admin = User::where('role', UserRole::Admin)->firstOrFail();
+                auth()->login($admin);
+            }
+
+            return $next($request);
+        });
     }
     /**
      * Display a listing of the resource.
@@ -34,15 +43,15 @@ class PostController extends Controller
      */
     public function create()
     {
-        
+
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(PostRequest $request)
     {
-        $post = auth()->user()->posts()->create($request->only([
+        $post = auth()->user()?->posts()->create($request->only([
             'category_id',
             'title',
             'body',
@@ -57,8 +66,8 @@ class PostController extends Controller
             $post->thumbnail = $path;
             $post->save();
             $savedFiles[] = $path;
-        }     
-        
+        }
+
         return response()->json([
             'message' => 'Post created successfully',
             'postId' => $post->id,
@@ -83,11 +92,11 @@ class PostController extends Controller
             'comments' => $post->comments->map(fn($comment) => [
                 'userName' => $comment->user->name,
                 'text' => $comment->text,
-                
+
             ]),
-        ];    
+        ];
     }
-    
+
 
     /**
      * Show the form for editing the specified resource.

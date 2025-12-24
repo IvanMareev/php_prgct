@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ProductStatus;
 use App\Http\Requests\Product\StoreRequest;
 use App\Http\Requests\Product\StoreReviewRequest;
+use App\Http\Requests\Product\UpdateProductRequest;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductReview;
@@ -50,7 +51,7 @@ class ProductController extends Controller
             'description' => $product->description,
             'images' => $product->images->map(fn (ProductImage $image) => $image->url),
             'count' => $product->count,
-            'reviews' => $product->reviews()->map(fn(ProductReview $review) => [
+            'reviews' => $product?->reviews()->map(fn(ProductReview $review) => [
                 'id' => $review->id,
                 'userName' => $review->user->name,
                 'text' => $review->text,
@@ -103,5 +104,27 @@ class ProductController extends Controller
             'text' => $request->string('text'),
             'rating' => $request->integer('rating'),
         ])->only('text', 'rating');
+    }
+
+    public function update(UpdateProductRequest $request, Product $product)
+    {
+        if($request->method() === 'PUT') {
+            $product->update([
+                'name' => $request->string('name'),
+                'description' => $request->string('description'),
+                'price' => $request->float('price'),
+                'count' => $request->integer('count', 0),
+                'status' => $request->enum('status', ProductStatus::class),
+            ]);
+        } else {
+            //TODO использовать DTO
+            $product->update([
+                'name' => $request->string('name'),
+                'description' => $request->string('description'),
+                'price' => $request->float('price'),
+                'count' => $request->integer('count', 0),
+                'status' => $request->enum('status', ProductStatus::class),
+            ]);
+        }
     }
 }

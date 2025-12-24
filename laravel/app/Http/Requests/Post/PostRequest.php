@@ -1,8 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Product;
+namespace App\Http\Requests\Post;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Enums\PostStatus;
+use App\Http\Requests\Product\ApiRequest;
+use App\Models\Category;
+use Illuminate\Validation\Rules\Enum;
 
 class PostRequest extends ApiRequest
 {
@@ -24,7 +27,8 @@ class PostRequest extends ApiRequest
         return [
             'title' => 'required|string:max:150',
             'thumbnail' => 'image|max',
-            'state' => [new Enum()]
+            'state' => [new Enum(PostStatus::class)],
+            'categoryId' => [new Enum(Category::class)]
         ];
     }
 }

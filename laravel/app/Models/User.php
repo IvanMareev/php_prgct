@@ -72,6 +72,11 @@ class User extends Authenticatable
         return $this->hasMany(Product::class);
     }
 
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class);
+    }
+
     public function reviews(): HasMany
     {
         return $this->hasMany(ProductReview::class);
@@ -79,6 +84,6 @@ class User extends Authenticatable
 
     public function scopeWhereIsAdmin($query)
     {
-        return $query->where('role', UserRole::Admin->value);
+        return $query->where('role', UserRole::Admin);
     }
 }
