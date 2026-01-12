@@ -7,7 +7,6 @@ use App\Http\Requests\Post\PostRequest;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\Request;
-use App\Http\Requests\Post\StorePostRequest;
 
 class PostController extends Controller
 {
@@ -23,8 +22,6 @@ class PostController extends Controller
             return $next($request);
         });
     }
-
-    
     /**
      * Display a listing of the resource.
      */
@@ -41,7 +38,6 @@ class PostController extends Controller
         ]);
     }
 
-
     /**
      * Show the form for creating a new resource.
      */
@@ -50,11 +46,10 @@ class PostController extends Controller
 
     }
 
-
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StorePostRequest $request)
+    public function store(PostRequest $request)
     {
         $post = auth()->user()?->posts()->create($request->only([
             'category_id',
@@ -80,7 +75,6 @@ class PostController extends Controller
         ], 201);
     }
 
-
     /**
      * Display the specified resource.
      */
@@ -104,7 +98,6 @@ class PostController extends Controller
     }
 
 
-
     /**
      * Show the form for editing the specified resource.
      */
@@ -113,23 +106,13 @@ class PostController extends Controller
         //
     }
 
-
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
     {
-        $post = Post::findOrFail($id);
-        $post->update($request->only([
-            'category_id',
-            'title',
-            'body',
-            'thumbnail',
-            'status',
-            'views',
-        ]));
+        //
     }
-
 
     /**
      * Remove the specified resource from storage.
@@ -137,12 +120,8 @@ class PostController extends Controller
     public function destroy(Post $post)
     {
         $post->delete();
-        return response()->json([
-            'message' => 'Post deleted successfully',
-        ], 200);
+        return response()->json(['message' => 'Post deleted successfully']);
     }
-
-
     public function comment(Request $request, Post $post)
     {
         return $post->comments()->create([

@@ -10,17 +10,19 @@ Route::get('/products', function () {
 });
 
 
-Route::controller(ProductController::class)
-    ->prefix('products')
-    ->group(function () {
-        Route::get('/', 'index')->name('products.index');
-        Route::get('/{product}', 'show')->name('products.show');
-        Route::post('/', 'store')->name('products.store');
-        Route::post('/{product}/review', 'review')->name('products.review.store');
-        Route::put('/{product}', 'update')->name('products.update');
-        Route::patch('/{product}', 'update')->name('products.update');
-        Route::delete('/{product}', 'destroy')->name('products.destroy');
-    });
+//Route::controller(ProductController::class)
+//    ->prefix('products')
+//    ->group(function () {
+//        Route::get('/', 'index')->name('products.index');
+//        Route::get('/{product}', 'show')->name('products.show');
+//        Route::post('/', 'store')->name('products.store');
+//        Route::post('/{product}/review', 'review')->name('products.review.store');
+//        Route::put('/{product}', 'update')->name('products.update');
+//        Route::patch('/{product}', 'update')->name('products.update');
+//        Route::delete('/{product}', 'destroy')->name('products.destroy');
+//    });
+
+Route::apiResource('products', ProductController::class);
 
 Route::controller(PostController::class)
     ->prefix('posts')
@@ -31,4 +33,5 @@ Route::controller(PostController::class)
         Route::post('/{post}/comment', 'comment')->name('posts.comment.store');
         Route::patch('/{post}', 'update')->name('posts.update');
         Route::put('/{post}', 'update')->name('posts.update');
+        Route::delete('/{post}', 'destroy')->name('posts.destroy');
     });

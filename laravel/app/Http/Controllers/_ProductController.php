@@ -3,24 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ProductStatus;
+use App\Http\Requests\Product\StoreRequest;
+use App\Http\Requests\Product\StoreReviewRequest;
+use App\Http\Requests\Product\UpdateProductRequest;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductReview;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
-use App\Http\Requests\Product\StoreReviewRequest;
-use App\Http\Requests\Product\StoreProductRequest;
 
 class ProductController extends Controller
 {
     public function __construct()
     {
         $admin = User::query()->inRandomOrder()->whereIsAdmin()->first();
-    
-        // Проверяем, найден ли админ
-        if ($admin) {
-            auth()->login($admin);
-        }
+        auth()->login($admin);
     }
 
     public function index() {
@@ -53,7 +50,7 @@ class ProductController extends Controller
             'description' => $product->description,
             'images' => $product->images->map(fn (ProductImage $image) => $image->url),
             'count' => $product->count,
-            'reviews' => $product->reviews->map(fn(ProductReview $review) => [
+            'reviews' => $product?->reviews->map(fn(ProductReview $review) => [
                 'id' => $review->id,
                 'userName' => $review->user->name,
                 'text' => $review->text,
@@ -62,7 +59,7 @@ class ProductController extends Controller
         ];
     }
 
-    public function store(StoreProductRequest $request)
+    public function store(StoreRequest $request)
     {
 
 
@@ -87,8 +84,6 @@ class ProductController extends Controller
                     $savedFiles[] = Storage::url($path);
                 }
             }
-        } else {
-            //dd($request);
         }
 
         return response()->json([
@@ -108,26 +103,34 @@ class ProductController extends Controller
         ])->only('text', 'rating');
     }
 
-    public function update(Request $request, string $id)
+    public function update(UpdateProductRequest $request, Product $product)
     {
-        $product = Product::findOrFail($id);
-        $product->update($request->only([
-            'name',
-            'description',
-            'price',
-            'count',
-            'status',
-        ]));
-    }
-
-    public function destroy(Product $product)
-    {
-        $product->delete();
+        if($request->method() === 'PUT') {
+             $product->update([
+                'name' => $request->string('name'),
+                'description' => $request->string('description'),
+                'price' => $request->float('price'),
+                'count' => $request->integer('count', 0),
+                'status' => $request->enum('status', ProductStatus::class),
+            ]);
+        } else {
+            //TODO использовать DTO
+             $product->update([
+                'name' => $request->string('name'),
+                'description' => $request->string('description'),
+                'price' => $request->float('price'),
+                'count' => $request->integer('count', 0),
+                'status' => $request->enum('status', ProductStatus::class),
+            ]);
+        }
 
         return response()->json([
-            'message' => 'Product deleted successfully',
-        ], 200);
+            'message' => 'Product updated successfully'
+        ]);
     }
 
-    
+    public function destroy(Product $product) {
+        $product->delete();
+        return response()->json(['message' => 'Product deleted successfully']);
+    }
 }
