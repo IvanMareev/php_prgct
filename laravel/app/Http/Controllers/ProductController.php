@@ -10,7 +10,6 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductReview;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
