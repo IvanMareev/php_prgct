@@ -2,15 +2,11 @@
 
 namespace App\Http\Requests\Product;
 
-use App\Enums\ProductStatus;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Enum;
-use App\Http\Requests\ApiRequest;
 
-class StoreRequest extends ApiRequest
+class StoreProductRequest extends FormRequest
 {
-
-
+    
     /**
      * Get the validation rules that apply to the request.
      *
@@ -19,7 +15,7 @@ class StoreRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string'],
+            'name' => ['required', 'string'],
             'description' => [ 'string'],
             'price' => ['required', 'numeric', 'min:1', 'max:10000000'],
             'count' => ['required', 'integer', 'min:1', 'max:100000'],
