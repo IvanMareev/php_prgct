@@ -15,7 +15,6 @@ use PostService;
 
 class PostController extends Controller
 {
-
     public PostService $service;
     public function __construct()
     {
