@@ -118,6 +118,16 @@
       <excludeFolder url="file://$MODULE_DIR$/laravel/vendor/tijsverkoyen/css-to-inline-styles" />
       <excludeFolder url="file://$MODULE_DIR$/laravel/vendor/vlucas/phpdotenv" />
       <excludeFolder url="file://$MODULE_DIR$/laravel/vendor/voku/portable-ascii" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel/vendor/doctrine/deprecations" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel/vendor/phpdocumentor/reflection" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel/vendor/phpdocumentor/reflection-common" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel/vendor/phpdocumentor/reflection-docblock" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel/vendor/phpdocumentor/type-resolver" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel/vendor/phpstan/phpdoc-parser" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel/vendor/spatie/laravel-data" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel/vendor/spatie/laravel-package-tools" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel/vendor/spatie/php-structure-discoverer" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel/vendor/webmozart/assert" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

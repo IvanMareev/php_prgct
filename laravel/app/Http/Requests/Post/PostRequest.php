@@ -5,6 +5,8 @@ namespace App\Http\Requests\Post;
 use App\Enums\PostStatus;
 use App\Http\Requests\ApiRequest;
 use App\Models\Category;
+use App\Services\Post\DTO\CreatePostData;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rules\Enum;
 
 class PostRequest extends ApiRequest
@@ -17,7 +19,7 @@ class PostRequest extends ApiRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array|string>
      */
     public function rules(): array
     {
@@ -27,5 +29,10 @@ class PostRequest extends ApiRequest
             'state' => [new Enum(PostStatus::class)],
             'categoryId' => [new Enum(Category::class)]
         ];
+    }
+
+    public function data(): CreatePostData
+    {
+        return CreatePostData::from($this->validated());
     }
 }

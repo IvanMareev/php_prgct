@@ -3,27 +3,30 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Post\PostRequest;
-use App\Http\Requests\Product\UpdateProductRequest;
+use App\Http\Requests\Post\PostUpdatePostRequect;
 use App\Http\Resources\Post\MinifyPostResource;
 use App\Http\Resources\Post\PostRecource;
 use App\Models\Post;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use PostService;
 
 class PostController extends Controller
 {
 
+    public PostService $service;
     public function __construct()
     {
+        $this->service = new PostService();
         $this->middleware('auth:sanctum')->only(['store', 'update', 'destroy']);
         $this->middleware('admin')->only(['store', 'update', 'destroy']);
         $this->middleware('post.published')->only(['show']);
     }
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+
+    public function index(): AnonymousResourceCollection
     {
         $posts = Post::query()
             ->select(['id', 'title', 'thumbnail', 'views', 'created_at',])
@@ -32,81 +35,32 @@ class PostController extends Controller
         return MinifyPostResource::collection($posts);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Post $post)
+
+    public function show(Post $post): PostRecource
     {
         return new PostRecource($post);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateProductRequest $request, Post $post): PostRecource
+
+    public function update(PostUpdatePostRequect $request, Post $post): PostRecource
     {
-        $data = $request->only([
-            'category_id',
-            'title',
-            'body',
-            'status',
-            'views',
-        ]);
-
-        if ($request->hasFile('thumbnail')) {
-            if ($post->thumbnail) {
-                Storage::disk('public')->delete($post->thumbnail);
-            }
-
-            $data['thumbnail'] = $request
-                ->file('thumbnail')
-                ->store('thumbnails', 'public');
-        }
-
-        $post->update($data);
-
-        return new PostRecource($post->fresh());
+        return $this->service->update($request, $post);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(PostRequest $request)
+
+    public function store(PostRequest $request): JsonResponse
     {
-        $post = auth()->user()?->posts()->create($request->only([
-            'category_id',
-            'title',
-            'body',
-            'thumbnail',
-            'status',
-            'views',
-        ]));
-
-        $savedFiles = [];
-        if ($request->hasFile('thumbnail')) {
-            $path = $request->file('thumbnail')->store('thumbnails', 'public');
-            $post->thumbnail = $path;
-            $post->save();
-            $savedFiles[] = $path;
-        }
-
-        return response()->json([
-            'message' => 'Post created successfully',
-            'postId' => $post->id,
-            'savedFiles' => $savedFiles,
-        ], 201);
+        return $this->service->store($request->data());
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Post $post)
+
+    public function destroy(Post $post): JsonResponse
     {
         $post->delete();
         return response()->json(['message' => 'Post deleted successfully']);
     }
 
-    public function comment(Request $request, Post $post)
+    public function comment(Request $request, Post $post): Model
     {
         return $post->comments()->create([
             'user_id' => auth()->id(),

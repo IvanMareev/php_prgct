@@ -2,24 +2,25 @@
 
 
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
 
 require __DIR__ . '/groups/user.php';
 require __DIR__ . '/groups/products.php';
 
-
-//Route::controller(ProductController::class)
-//    ->prefix('products')
-//    ->group(function () {
-//        Route::get('/', 'index')->name('products.index');
-//        Route::get('/{product}', 'show')->name('products.show');
-//        Route::post('/', 'store')->name('products.store');
-//        Route::post('/{product}/review', 'review')->name('products.review.store');
-//        Route::put('/{product}', 'update')->name('products.update');
-//        Route::patch('/{product}', 'update')->name('products.update');
-//        Route::delete('/{product}', 'destroy')->name('products.destroy');
-//    });
+// TODO fix route
+Route::controller(ProductController::class)
+    ->prefix('products')
+    ->group(function () {
+        Route::get('/', 'index')->name('products.index');
+        Route::get('/{product}', 'show')->name('products.show');
+        Route::post('/', 'store')->name('products.store');
+        Route::post('/{product}/review', 'review')->name('products.review.store');
+        Route::put('/{product}', 'update')->name('products.update');
+        Route::patch('/{product}', 'update')->name('products.update');
+        Route::delete('/{product}', 'destroy')->name('products.destroy');
+    });
 
 
 Route::controller(PostController::class)

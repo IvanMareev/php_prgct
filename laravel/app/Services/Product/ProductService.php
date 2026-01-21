@@ -30,13 +30,13 @@ final class ProductService
     {
         $images = Arr::get($data->toArray(), 'images');
 
-        $product = auth()->user()->products()->create([
+        $product = auth()->user()?->products()->create([
             $data->except('images')->toArray(),
         ]);
 
 
         if ($images) {
-            foreach ($data->file('images') as $image) {
+            foreach ($data?->file('images') as $image) {
                 $path = $image->store('images', 'public');
 
                 if ($path) {
