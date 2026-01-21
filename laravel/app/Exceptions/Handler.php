@@ -2,8 +2,10 @@
 
 namespace App\Exceptions;
 
+use App\Exceptions\Product\ProductNotFoundExeption;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Throwable;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -23,8 +25,21 @@ class Handler extends ExceptionHandler
      */
     public function register(): void
     {
-        $this->reportable(function (Throwable $e) {
-            //
+        $this->renderable(function (NotFoundHttpException $e, $request) {
+            return responseFailed(
+                transMessage('route_not_found'),
+                404
+            );
+        });
+
+        $this->renderable(function (AuthorizationException $e, $request) {
+            return responseFailed(
+                transMessage('AuthorizationException')
+            );
+        });
+
+        $this->renderable(function (ProductNotFoundExeption $e, $request) {
+            return responseFailed($e->getMessage(), 404);
         });
     }
 }

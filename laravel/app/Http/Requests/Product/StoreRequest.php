@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Product;
 
 use App\Enums\ProductStatus;
+use App\Services\Product\DTO\CreateProductData;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\ValidationException;
@@ -28,5 +29,11 @@ class StoreRequest extends ApiRequest
             'images' => ['array'],
             'images.*' => ['image'],
         ];
+    }
+
+
+    public function data(): CreateProductData
+    {
+        return CreateProductData::from($this->validated());
     }
 }

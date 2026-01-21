@@ -71,6 +71,11 @@ class Product extends Model
         return $this->hasMany(ProductImage::class)->select(['url']);
     }
 
+    public function imagesList()
+    {
+        return $this->images->map(fn ($image) => $image->url)->toArray();
+    }
+
     public function rating(): int|float
     {
         return round($this->reviews()->avg('rating'), 1);

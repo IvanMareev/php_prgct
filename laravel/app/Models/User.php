@@ -53,12 +53,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role'
+        'role',
     ];
 
     protected $hidden = [
         'password',
-        'remember_token',
     ];
 
     protected $casts = [
@@ -85,5 +84,10 @@ class User extends Authenticatable
     public function scopeWhereIsAdmin($query)
     {
         return $query->where('role', UserRole::Admin);
+    }
+
+    public function is_admin(): bool
+    {
+        return $this->role === UserRole::Admin;
     }
 }

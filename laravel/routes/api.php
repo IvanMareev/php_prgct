@@ -1,13 +1,12 @@
 <?php
 
-use App\Http\Controllers\ProductController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\PostController;
+use Illuminate\Support\Facades\Route;
 
-Route::get('/products', function () {
 
-});
+require __DIR__ . '/groups/user.php';
+require __DIR__ . '/groups/products.php';
 
 
 //Route::controller(ProductController::class)
@@ -22,7 +21,6 @@ Route::get('/products', function () {
 //        Route::delete('/{product}', 'destroy')->name('products.destroy');
 //    });
 
-Route::apiResource('products', ProductController::class);
 
 Route::controller(PostController::class)
     ->prefix('posts')
@@ -32,6 +30,8 @@ Route::controller(PostController::class)
         Route::post('/', 'store')->name('posts.store');
         Route::post('/{post}/comment', 'comment')->name('posts.comment.store');
         Route::patch('/{post}', 'update')->name('posts.update');
-        Route::put('/{post}', 'update')->name('posts.update');
+        Route::post('/{post}', 'update')->name('posts.update');
         Route::delete('/{post}', 'destroy')->name('posts.destroy');
     });
+
+
