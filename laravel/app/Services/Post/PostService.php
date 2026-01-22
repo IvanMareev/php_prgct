@@ -24,7 +24,7 @@ final class PostService
 
             $data['thumbnail'] = $request
                 ->file('thumbnail')
-                ?->store('thumbnails', 'public');
+                    ?->store('thumbnails', 'public');
         }
 
         $post->update($data);
