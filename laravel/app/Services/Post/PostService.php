@@ -59,4 +59,14 @@ final class PostService
             'savedFiles' => $savedFiles,
         ], 201);
     }
+
+
+    public function deletePost(Post $post): JsonResponse
+    {
+        if($post->delete()){
+            return resOk();
+        } else {
+            return responseFailed("Не удалось удалить пост");
+        }
+    }
 }

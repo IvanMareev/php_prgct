@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\ProductReview;
 use App\Services\Product\DTO\CreateProductData;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 
@@ -89,5 +90,15 @@ final class ProductService
             'text' => $request->string('text'),
             'rating' => $request->integer('rating'),
         ]);
+    }
+
+
+    public function deleteProduct(Product $product): JsonResponse
+    {
+        if ($status = $product->delete()) {
+            return resOk();
+        } else {
+            return responseFailed("Не удалось удалить продукт");
+        }
     }
 }

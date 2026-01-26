@@ -10,6 +10,7 @@ function resOk()
 
 function responseFailed(string $message, int $code = 400): JsonResponse
 {
+    $message = (string) $message;
     return response()->json(['message' => $message], $code);
 }
 

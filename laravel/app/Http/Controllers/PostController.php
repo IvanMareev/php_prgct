@@ -55,8 +55,7 @@ class PostController extends Controller
 
     public function destroy(Post $post): JsonResponse
     {
-        $post->delete();
-        return response()->json(['message' => 'Post deleted successfully']);
+        return $this->service->deletePost($post);
     }
 
     public function comment(Request $request, Post $post): Model

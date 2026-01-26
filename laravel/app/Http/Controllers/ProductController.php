@@ -54,7 +54,6 @@ class ProductController extends Controller
 
     public function destroy(Product $product): JsonResponse
     {
-        $product->delete();
-        return resOk();
+        return  ProductFacade::deleteProduct($product);
     }
 }
