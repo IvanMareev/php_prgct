@@ -9,7 +9,7 @@ use App\Repositories\Product\ProductRepositoryInterface;
 use App\Repositories\Product\EloquentProductRepository;
 use App\Services\Product\ProductService;
 use Illuminate\Support\ServiceProvider;
-
+use App\Services\FileUploadService;
 
 
 class AppServiceProvider extends ServiceProvider
