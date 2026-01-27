@@ -27,9 +27,7 @@ class PostController extends Controller
 
     public function index(): AnonymousResourceCollection
     {
-        $posts = Post::query()
-            ->select(['id', 'title', 'thumbnail', 'views', 'created_at',])
-            ->get();
+        $posts = $this->service->getAllPosts();
 
         return MinifyPostResource::collection($posts);
     }
@@ -60,9 +58,6 @@ class PostController extends Controller
 
     public function comment(Request $request, Post $post): Model
     {
-        return $post->comments()->create([
-            'user_id' => auth()->id(),
-            'text' => $request->string('text'),
-        ]);
+        return $this->service->createComment($post, $request);
     }
 }

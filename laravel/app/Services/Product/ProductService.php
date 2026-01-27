@@ -19,6 +19,11 @@ final class ProductService
     private Product $product;
 
 
+    public function __construct(private FileUploadService $fileUploadService)
+    {
+    }
+
+
     public function published(array $fields = ['id', 'name', 'price']): Collection|array
     {
         return Product::query()
@@ -37,14 +42,16 @@ final class ProductService
 
 
         if ($images) {
-            foreach ($data?->file('images') as $image) {
-                $path = $image->store('images', 'public');
+            $paths = $this->fileUploadService->uploadMultipleFiles(
+                $images,
+                'public',
+                'product_images'
+            );
 
-                if ($path) {
-                    $product->images()->create([
-                        'url' => config('app.url') . Storage::url($path)
-                    ]);
-                }
+            foreach ($paths as $path) {
+                $product->images()->create([
+                    'url' => config('app.url') . Storage::url($path)  // Полный URL
+                ]);
             }
         }
 
@@ -53,24 +60,15 @@ final class ProductService
 
     public function update(StoreRequest $request, Product $product): Product
     {
-        if ($request->method() === 'PUT') {
-            $this->product->update([
-                'name' => $request->string('name'),
-                'description' => $request->string('description'),
-                'price' => $request->float('price'),
-                'count' => $request->integer('count', 0),
-                'status' => $request->enum('status', ProductStatus::class),
-            ]);
-        } else {
-            //TODO использовать DTO
-            $this->product->update([
-                'name' => $request->string('name'),
-                'description' => $request->string('description'),
-                'price' => $request->float('price'),
-                'count' => $request->integer('count', 0),
-                'status' => $request->enum('status', ProductStatus::class),
-            ]);
-        }
+        //TODO использовать DTO
+        $this->product->update([
+            'name' => $request->string('name'),
+            'description' => $request->string('description'),
+            'price' => $request->float('price'),
+            'count' => $request->integer('count', 0),
+            'status' => $request->enum('status', ProductStatus::class),
+        ]);
+
 
         return $this->product;
     }
