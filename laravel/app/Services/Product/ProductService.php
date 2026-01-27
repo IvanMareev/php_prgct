@@ -8,38 +8,35 @@ use App\Enums\ProductStatus;
 use App\Http\Requests\Product\StoreRequest;
 use App\Models\Product;
 use App\Models\ProductReview;
+use App\Repositories\Product\EloquentProductRepository;
 use App\Services\Product\DTO\CreateProductData;
+use App\Services\Product\DTO\UpdateProductData;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Storage;
+use App\Services\FileUploadService;
 
 final class ProductService
 {
     private Product $product;
 
 
-    public function __construct(private FileUploadService $fileUploadService)
+    public function __construct(
+        private FileUploadService $fileUploadService, 
+    private EloquentProductRepository $eloquentProductRepository)
     {
     }
 
 
     public function published(array $fields = ['id', 'name', 'price']): Collection|array
     {
-        return Product::query()
-            ->select($fields)
-            ->whereStatus(ProductStatus::PUBLISHED)
-            ->get();
+        return $this->eloquentProductRepository->getAllPublishedProduct($fields);
     }
 
     public function store(CreateProductData $data): Product
     {
         $images = Arr::get($data->toArray(), 'images');
-
-        $product = auth()->user()?->products()->create([
-            $data->except('images')->toArray(),
-        ]);
-
+        $paths = [];
 
         if ($images) {
             $paths = $this->fileUploadService->uploadMultipleFiles(
@@ -47,30 +44,28 @@ final class ProductService
                 'public',
                 'product_images'
             );
-
-            foreach ($paths as $path) {
-                $product->images()->create([
-                    'url' => config('app.url') . Storage::url($path)  // Полный URL
-                ]);
-            }
         }
 
-        return $product;
+        return $this->eloquentProductRepository->createProduct(
+            $data->except('images')->toArray(),
+            $paths
+        );
     }
 
-    public function update(StoreRequest $request, Product $product): Product
+    public function update(UpdateProductData $data, Product $product): Product
     {
-        //TODO использовать DTO
-        $this->product->update([
-            'name' => $request->string('name'),
-            'description' => $request->string('description'),
-            'price' => $request->float('price'),
-            'count' => $request->integer('count', 0),
-            'status' => $request->enum('status', ProductStatus::class),
-        ]);
+        $images = Arr::get($data->toArray(), 'images');
+        $paths = [];
 
+        if ($images) {
+            $paths = $this->fileUploadService->uploadMultipleFiles(
+                $images,
+                'public',
+                'product_images'
+            );
+        }
 
-        return $this->product;
+        return $this->eloquentProductRepository->updateProduct($product, $data, $paths);
     }
 
 
