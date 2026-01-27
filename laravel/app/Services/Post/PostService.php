@@ -1,5 +1,6 @@
 <?php
 
+namespace App\Services\Post;
 
 use App\Http\Requests\Post\PostUpdatePostRequect;
 use App\Http\Resources\Post\PostRecource;

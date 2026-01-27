@@ -9,6 +9,8 @@ use App\Http\Requests\Product\UpdateProductRequest;
 use App\Http\Resources\Product\MinifyProductResource;
 use App\Http\Resources\Product\ProductResource;
 use App\Models\Product;
+use App\Services\Product\DTO\CreateProductData;
+use App\Services\Product\DTO\UpdateProductData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -35,7 +37,11 @@ class ProductController extends Controller
 
     public function store(StoreRequest $request): ProductResource
     {
-        $product = ProductFacade::store($request->data());
+
+        $dto = CreateProductData::fromRequest($request);
+
+        $product = ProductFacade::store($dto);
+
         return new ProductResource($product);
     }
 
@@ -47,7 +53,10 @@ class ProductController extends Controller
 
     public function update(UpdateProductRequest $request, Product $product): ProductResource
     {
-        $product = ProductFacade::setProduct($product)->update($request);
+        //TODO убрать formRequest и сделать без него передачу DTO
+        $dto = UpdateProductData::fromRequest($request);
+
+        $product = ProductFacade::setProduct($product)->update($dto);
 
         return new ProductResource($product);
     }

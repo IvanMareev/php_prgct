@@ -7,18 +7,16 @@ use App\Http\Requests\Post\PostUpdatePostRequect;
 use App\Http\Resources\Post\MinifyPostResource;
 use App\Http\Resources\Post\PostRecource;
 use App\Models\Post;
+use App\Services\Post\PostService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use PostService;
 
 class PostController extends Controller
 {
-    public PostService $service;
-    public function __construct()
+    public function __construct(private readonly PostService $service)
     {
-        $this->service = new PostService();
         $this->middleware('auth:sanctum')->only(['store', 'update', 'destroy']);
         $this->middleware('admin')->only(['store', 'update', 'destroy']);
         $this->middleware('post.published')->only(['show']);

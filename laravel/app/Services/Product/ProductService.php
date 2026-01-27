@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace App\Services\Product;
 
-use App\Enums\ProductStatus;
 use App\Http\Requests\Product\StoreRequest;
 use App\Models\Product;
 use App\Models\ProductReview;
 use App\Repositories\Product\EloquentProductRepository;
 use App\Services\Product\DTO\CreateProductData;
 use App\Services\Product\DTO\UpdateProductData;
+use App\Services\UploadFiles\FileUploadService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
-use App\Services\FileUploadService;
 
 final class ProductService
 {
@@ -22,8 +21,8 @@ final class ProductService
 
 
     public function __construct(
-        private FileUploadService $fileUploadService, 
-    private EloquentProductRepository $eloquentProductRepository)
+        private readonly FileUploadService         $fileUploadService,
+        private readonly EloquentProductRepository $eloquentProductRepository)
     {
     }
 
@@ -35,24 +34,24 @@ final class ProductService
 
     public function store(CreateProductData $data): Product
     {
-        $images = Arr::get($data->toArray(), 'images');
-        $paths = [];
+        $imagePaths = [];
 
-        if ($images) {
-            $paths = $this->fileUploadService->uploadMultipleFiles(
-                $images,
+        if ($data->images()) {
+            $imagePaths = $this->fileUploadService->uploadMultipleFiles(
+                $data->images(),
                 'public',
                 'product_images'
             );
         }
 
         return $this->eloquentProductRepository->createProduct(
-            $data->except('images')->toArray(),
-            $paths
+            $data->toArray(),
+            $imagePaths
         );
     }
 
-    public function update(UpdateProductData $data, Product $product): Product
+
+    public function update(UpdateProductData $data): Product
     {
         $images = Arr::get($data->toArray(), 'images');
         $paths = [];
@@ -65,7 +64,7 @@ final class ProductService
             );
         }
 
-        return $this->eloquentProductRepository->updateProduct($product, $data, $paths);
+        return $this->eloquentProductRepository->updateProduct($this->product, $data, $paths);
     }
 
 

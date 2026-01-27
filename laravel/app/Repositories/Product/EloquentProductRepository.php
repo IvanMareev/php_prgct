@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 namespace App\Repositories\Product;
-use App\Models\Product;
-use App\Repositories\Product\ProductRepositoryInterface;
-use Illuminate\Database\Eloquent\Collection;
+
 use App\Enums\ProductStatus;
-use Illuminate\Support\Facades\Storage;
+use App\Models\Product;
 use App\Services\Product\DTO\UpdateProductData;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Storage;
 
 
 final class EloquentProductRepository implements ProductRepositoryInterface
@@ -28,23 +28,27 @@ final class EloquentProductRepository implements ProductRepositoryInterface
 
         foreach ($imagePaths as $path) {
             $product->images()->create([
-                'url' => config('app.url') . Storage::url($path) 
+                'url' => config('app.url') . Storage::url($path)
             ]);
         }
 
         return $product;
     }
 
-    public function updateProduct(Product $product, UpdateProductData $data, array $imagePaths = []): Product
+    public function updateProduct(
+        Product           $product,
+        UpdateProductData $data,
+        array             $imagePaths = []
+    ): Product
     {
-        $product->update($data->except('images')->toArray());
+        $product->update($data->toArray());
 
         foreach ($imagePaths as $path) {
             $product->images()->create([
-                'url' => config('app.url') . Storage::url($path)
+                'url' => config('app.url') . Storage::url($path),
             ]);
         }
 
-        return $product;
+        return $product->fresh();
     }
 }

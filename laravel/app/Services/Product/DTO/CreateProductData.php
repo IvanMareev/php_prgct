@@ -1,20 +1,51 @@
 <?php
-
 namespace App\Services\Product\DTO;
 
+use App\Http\Requests\Product\StoreRequest;
 use App\Enums\ProductStatus;
-use PhpOption\Option;
-use Spatie\LaravelData\Attributes\MapInputName;
-use Spatie\LaravelData\Data;
 
-class CreateProductData extends Data
+final class CreateProductData
 {
-    public string $name;
-    #[MapInputName('desc')]
-    public string|Option $description;
-    public int $price;
-    public int $count;
-    public string|Option $images;
-    #[MapInputName('state')]
-    public ProductStatus $status;
+    public function __construct(
+        public readonly string $name,
+        public readonly ?string $description,
+        public readonly float $price,
+        public readonly int $count,
+        public readonly ?array $images,
+        public readonly ProductStatus $status,
+    ) {}
+
+    public static function fromRequest(StoreRequest $request): self
+    {
+        $images = $request->file('images');
+
+        if ($images && !is_array($images)) {
+            $images = [$images];
+        }
+
+        return new self(
+            name: $request->validated('name'),
+            description: $request->validated('description'),
+            price: (float)$request->validated('price'),
+            count: (int)$request->validated('count'),
+            images: $images,
+            status: ProductStatus::from($request->validated('status')),
+        );
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'name' => $this->name,
+            'description' => $this->description,
+            'price' => $this->price,
+            'count' => $this->count,
+            'status' => $this->status->value,
+        ];
+    }
+
+    public function images(): ?array
+    {
+        return $this->images;
+    }
 }
