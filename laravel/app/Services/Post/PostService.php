@@ -8,10 +8,10 @@ use App\Models\Post;
 use App\Repositories\PostRepositoryInterface;
 use App\Services\Post\DTO\CreatePostData;
 use App\Services\UploadFiles\FileUploadService;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 final class PostService
 {
@@ -45,23 +45,14 @@ final class PostService
         return new PostRecource($post->fresh());
     }
 
-    public function store(CreatePostData $request): JsonResponse
+    public function store(CreatePostData $data): Post
     {
-        $data = $request->validated();
-
-
         $data['thumbnail'] = $this->fileUploadService
             ->uploadFile($request->file['thumbnail'] ?? null, 'public', 'thumbnails');
 
-        $postData = $data->only(['category_id', 'title', 'body', 'thumbnail', 'status', 'views']);
-        $post = $this->postRepository->createForUser(auth()->id(), $postData->toArray());
+//        $postData = $data->only(['category_id', 'title', 'body', 'thumbnail', 'status', 'views']);
 
-
-        return response()->json([
-            'message' => 'Post created successfully',
-            'postId' => $post->id,
-            'savedFiles' => $data['thumbnail'] ? [$data['thumbnail']] : [],
-        ], 201);
+        return $this->postRepository->createForUser(auth()->id(), $data->toArray());
     }
 
 

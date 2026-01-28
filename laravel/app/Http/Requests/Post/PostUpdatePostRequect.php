@@ -22,6 +22,7 @@ class PostUpdatePostRequect extends FormRequest
             'title' => ['string', 'max:255'],
             'body' => ['string'],
             'status' => [new Enum(PostStatus::class)],
+            'thumbnail' => ['image', 'mimes:jpg,jpeg,png', 'max:1024'],
         ];
     }
 }

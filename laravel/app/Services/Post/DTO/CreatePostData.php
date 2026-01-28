@@ -2,15 +2,31 @@
 
 namespace App\Services\Post\DTO;
 
-use Spatie\LaravelData\Data;
+use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 
-class CreatePostData extends Data
+class CreatePostData
 {
-    public string  $category_id;
-    public string  $title;
-    public string  $body;
-    public string  $thumbnail;
-    public string  $status;
-    public string  $views;
-    public string  $user_id;
+    public function __construct(
+        public int $category_id,
+        public string $title,
+        public string $body,
+        public ?UploadedFile $thumbnail,
+        public string $status,
+        public int $views,
+        public int $user_id,
+    ) {}
+
+    public function toArray(): array
+    {
+        return [
+            'category_id' => $this->category_id,
+            'title'       => $this->title,
+            'body'        => $this->body,
+            'thumbnail'   => $this->thumbnail,
+            'status'      => $this->status,
+            'views'       => $this->views,
+            'user_id'     => $this->user_id,
+        ];
+    }
 }

@@ -7,6 +7,7 @@ use App\Http\Requests\Post\PostUpdatePostRequect;
 use App\Http\Resources\Post\MinifyPostResource;
 use App\Http\Resources\Post\PostRecource;
 use App\Models\Post;
+use App\Services\Post\DTO\CreatePostData;
 use App\Services\Post\PostService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
@@ -45,7 +46,25 @@ class PostController extends Controller
 
     public function store(PostRequest $request): JsonResponse
     {
-        return $this->service->store($request->data());
+        $validated = $request->validated();
+
+        $dto = new CreatePostData(
+            category_id: (int)$validated['category_id'],
+            title: $validated['title'],
+            body: $validated['body'],
+            thumbnail: $request->file('thumbnail'),
+            status: $validated['status'],
+            views: (int)($validated['views'] ?? 0),
+            user_id: (int)$request->user()->id,
+        );
+
+        $post = $this->service->store($dto);
+
+        return response()->json([
+            'message' => 'Post created successfully',
+            'postId' => $post->id,
+            'savedFiles' => $post->thumbnail ? [$post->thumbnail] : [],
+        ], 201);
     }
 
 
