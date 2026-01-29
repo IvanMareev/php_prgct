@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use App\Services\Post\DTO\UpdatePostRequect;
+use Symfony\Component\HttpFoundation\Response;
 
 class PostController extends Controller
 {
@@ -76,21 +76,29 @@ class PostController extends Controller
             'message' => 'Post created successfully',
             'postId' => $post->id,
             'savedFiles' => $post->thumbnail ? [$post->thumbnail] : [],
-        ], 201);
+        ], Response::HTTP_CREATED);
     }
 
 
     public function destroy(Post $post): JsonResponse
     {
         if ($this->service->deletePost($post)) {
-            return resOk();
+            return resOk(Response::HTTP_OK);
         } else {
-            return responseFailed("Не удалось удалить пост");
+            return responseFailed("Не удалось удалить пост", Response::HTTP_BAD_REQUEST);
         }
     }
 
-    public function comment(Request $request, Post $post): Model
+    public function comment(Request $request, Post $post): JsonResponse
     {
-        return $this->service->createComment($post, $request);
+        // DTO можно не создавать, так как тут всего одно поле
+        $UpdatedPost = $this->service->createComment($post, $request);
+
+        return response()->json([
+            'message' => 'Post created successfully',
+            'postId' => $UpdatedPost->id,
+            'savedFiles' => $UpdatedPost->thumbnail ? [$UpdatedPost->thumbnail] : [],
+        ], Response::HTTP_CREATED);
+         
     }
 }

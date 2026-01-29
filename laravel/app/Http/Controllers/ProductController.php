@@ -14,6 +14,7 @@ use App\Services\Product\DTO\UpdateProductData;
 use App\Services\Product\ProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends Controller
 {
@@ -81,9 +82,9 @@ class ProductController extends Controller
     public function destroy(Product $product): JsonResponse
     {
         if ($this->productService->deleteProduct($product)) {
-            return resOk();
+            return resOk(Response::HTTP_OK);
         } else {
-            return responseFailed("Не удалось удалить продукт");
+            return responseFailed("Не удалось удалить продукт", Response::HTTP_BAD_REQUEST);
         }
     }
 }

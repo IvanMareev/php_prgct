@@ -60,7 +60,7 @@ final class PostService
     }
 
 
-    public function createComment(Post $post, Request $request): Model
+    public function createComment(Post $post, Request $request): Post
     {
         return $this->postRepository->createComment(
             $post,
