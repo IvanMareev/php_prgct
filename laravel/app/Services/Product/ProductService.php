@@ -4,74 +4,67 @@ declare(strict_types=1);
 
 namespace App\Services\Product;
 
-use App\Enums\ProductStatus;
 use App\Http\Requests\Product\StoreRequest;
 use App\Models\Product;
 use App\Models\ProductReview;
+use App\Repositories\Product\EloquentProductRepository;
 use App\Services\Product\DTO\CreateProductData;
+use App\Services\Product\DTO\UpdateProductData;
+use App\Services\UploadFiles\FileUploadService;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Storage;
 
 final class ProductService
 {
     private Product $product;
 
 
+    public function __construct(
+        private readonly FileUploadService         $fileUploadService,
+        private readonly EloquentProductRepository $eloquentProductRepository)
+    {
+    }
+
+
     public function published(array $fields = ['id', 'name', 'price']): Collection|array
     {
-        return Product::query()
-            ->select($fields)
-            ->whereStatus(ProductStatus::PUBLISHED)
-            ->get();
+        return $this->eloquentProductRepository->getAllPublishedProduct($fields);
     }
 
     public function store(CreateProductData $data): Product
     {
-        $images = Arr::get($data->toArray(), 'images');
+        $imagePaths = [];
 
-        $product = auth()->user()?->products()->create([
-            $data->except('images')->toArray(),
-        ]);
-
-
-        if ($images) {
-            foreach ($data?->file('images') as $image) {
-                $path = $image->store('images', 'public');
-
-                if ($path) {
-                    $product->images()->create([
-                        'url' => config('app.url') . Storage::url($path)
-                    ]);
-                }
-            }
+        if ($data->images()) {
+            $imagePaths = $this->fileUploadService->uploadMultipleFiles(
+                $data->images(),
+                'public',
+                'product_images'
+            );
         }
 
-        return $product;
+        return $this->eloquentProductRepository->createProduct(
+            $data->toArray(),
+            $imagePaths
+        );
     }
 
-    public function update(StoreRequest $request, Product $product): Product
+
+    public function update(UpdateProductData $data): Product
     {
-        if ($request->method() === 'PUT') {
-            $this->product->update([
-                'name' => $request->string('name'),
-                'description' => $request->string('description'),
-                'price' => $request->float('price'),
-                'count' => $request->integer('count', 0),
-                'status' => $request->enum('status', ProductStatus::class),
-            ]);
-        } else {
-            //TODO использовать DTO
-            $this->product->update([
-                'name' => $request->string('name'),
-                'description' => $request->string('description'),
-                'price' => $request->float('price'),
-                'count' => $request->integer('count', 0),
-                'status' => $request->enum('status', ProductStatus::class),
-            ]);
+        $images = Arr::get($data->toArray(), 'images');
+        $paths = [];
+
+        if ($images) {
+            $paths = $this->fileUploadService->uploadMultipleFiles(
+                $images,
+                'public',
+                'product_images'
+            );
         }
 
-        return $this->product;
+        return $this->eloquentProductRepository->updateProduct($this->product, $data, $paths);
     }
 
 
@@ -89,5 +82,11 @@ final class ProductService
             'text' => $request->string('text'),
             'rating' => $request->integer('rating'),
         ]);
+    }
+
+
+    public function deleteProduct(Product $product): bool
+    {
+        return $product->delete();
     }
 }

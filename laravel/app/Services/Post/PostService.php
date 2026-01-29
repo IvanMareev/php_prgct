@@ -1,62 +1,71 @@
 <?php
 
+namespace App\Services\Post;
 
-use App\Http\Requests\Post\PostRequest;
-use App\Http\Requests\Post\PostUpdatePostRequect;
-use App\Http\Requests\Product\UpdateProductRequest;
-use App\Http\Resources\Post\PostRecource;
+
 use App\Models\Post;
-use App\Models\Product;
+use App\Repositories\PostRepositoryInterface;
 use App\Services\Post\DTO\CreatePostData;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Storage;
+use App\Services\UploadFiles\FileUploadService;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use App\Services\Post\DTO\UpdatePostData;
 
 final class PostService
 {
-    public function update(PostUpdatePostRequect $request, Post $post): PostRecource
-    {
-        $data = $request->validated();
 
-        if ($request->hasFile('thumbnail')) {
-            if ($post->thumbnail) {
-                Storage::disk('public')->delete($post->thumbnail);
-            }
-
-            $data['thumbnail'] = $request
-                ->file('thumbnail')
-                    ?->store('thumbnails', 'public');
-        }
-
-        $post->update($data);
-
-        return new PostRecource($post->fresh());
+    public function __construct(
+        private FileUploadService $fileUploadService,
+        private PostRepositoryInterface $postRepository
+    ) {
     }
 
-    public function store(CreatePostData $request): JsonResponse
+    public function getAllPosts($fields = ['id', 'title', 'thumbnail', 'views', 'created_at']): Collection|array
     {
-        $data = $request->validated();
 
-        $post = auth()->user()?->posts()->create($data->only([
-            'category_id',
-            'title',
-            'body',
-            'thumbnail',
-            'status',
-            'views',
-        ]));
 
-        $savedFiles = [];
-        if ($data->hasFile('thumbnail')) {
-            $path = $data->file('thumbnail')?->store('thumbnails', 'public');
-            $post->thumbnail = $path;
-            $post->save();
-            $savedFiles[] = $path;
-        }
+        return $this->postRepository->getAll($fields);
+    }
 
-        return response()->json([
-            'message' => 'Post created successfully',
-            'postId' => $post->id,
-            'savedFiles' => $savedFiles,
-        ], 201);
+
+    public function update(UpdatePostData $request, Post $post): static|null
+    {
+        $data = $request->toArray();
+
+        $data['thumbnail'] = $this->fileUploadService->uploadFile(
+            $request->thumbnail,
+            'public',
+            'thumbnails',
+            $post->thumbnail
+        );
+
+        $this->postRepository->update($post, $data);
+        return $post->fresh();
+    }
+
+    public function store(CreatePostData $data): Post
+    {
+        $data['thumbnail'] = $this->fileUploadService
+            ->uploadFile($request->file['thumbnail'] ?? null, 'public', 'thumbnails');
+
+
+        return $this->postRepository->createForUser(auth()->id(), $data->toArray());
+    }
+
+
+    public function deletePost(Post $post): bool
+    {
+        return $this->postRepository->delete($post);
+    }
+
+
+    public function createComment(Post $post, Request $request): Post
+    {
+        return $this->postRepository->createComment(
+            $post,
+            auth()->id(),
+            $request->input('text')
+        );
     }
 }

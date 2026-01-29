@@ -2,19 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Facades\ProductFacade;
+use App\Enums\ProductStatus;
 use App\Http\Requests\Product\StoreRequest;
 use App\Http\Requests\Product\StoreReviewRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
 use App\Http\Resources\Product\MinifyProductResource;
 use App\Http\Resources\Product\ProductResource;
 use App\Models\Product;
+use App\Services\Product\DTO\CreateProductData;
+use App\Services\Product\DTO\UpdateProductData;
+use App\Services\Product\ProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends Controller
 {
-    public function __construct()
+    public function __construct(private readonly ProductService $productService)
     {
         $this->middleware('auth:sanctum')->only(['store', 'update', 'destroy']);
         $this->middleware('product.draft')->only(['show']);
@@ -24,7 +28,7 @@ class ProductController extends Controller
     public function index(): AnonymousResourceCollection
     {
         return MinifyProductResource::collection(
-            ProductFacade::published()
+            $this->productService->published()
         );
     }
 
@@ -35,26 +39,52 @@ class ProductController extends Controller
 
     public function store(StoreRequest $request): ProductResource
     {
-        $product = ProductFacade::store($request->data());
+        $images = $request->file('images');
+
+        if ($images && !is_array($images)) {
+            $images = [$images];
+        }
+
+        $dto = new CreateProductData(
+            name: $request->validated('name'),
+            description: $request->validated('description'),
+            price: (float)$request->validated('price'),
+            count: (int)$request->validated('count'),
+            images: $images,
+            status: ProductStatus::from($request->validated('status')),
+        );
+
+        $product = $this->productService->store($dto);
+
         return new ProductResource($product);
     }
 
 
     public function review(StoreReviewRequest $request, Product $product)
     {
-        return ProductFacade::setProduct($product)->addReview($request);
+        return $this->productService->setProduct($product)->addReview($request);
     }
 
     public function update(UpdateProductRequest $request, Product $product): ProductResource
     {
-        $product = ProductFacade::setProduct($product)->update($request);
+        $dto = new UpdateProductData(
+            name: $request->validated('name'),
+            price: $request->validated('price'),
+            description: $request->validated('description'),
+            images: $request->file('images'),
+        );
+
+        $product = $this->productService->setProduct($product)->update($dto);
 
         return new ProductResource($product);
     }
 
     public function destroy(Product $product): JsonResponse
     {
-        $product->delete();
-        return resOk();
+        if ($this->productService->deleteProduct($product)) {
+            return resOk(Response::HTTP_OK);
+        } else {
+            return responseFailed("Не удалось удалить продукт", Response::HTTP_BAD_REQUEST);
+        }
     }
 }

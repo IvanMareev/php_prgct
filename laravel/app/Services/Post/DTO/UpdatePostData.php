@@ -5,7 +5,7 @@ namespace App\Services\Post\DTO;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 
-class CreatePostData
+class UpdatePostData
 {
     public function __construct(
         public int $category_id,
@@ -14,7 +14,6 @@ class CreatePostData
         public ?UploadedFile $thumbnail,
         public string $status,
         public int $views,
-        public int $user_id,
     ) {}
 
     public function toArray(): array
@@ -26,7 +25,6 @@ class CreatePostData
             'thumbnail'   => $this->thumbnail,
             'status'      => $this->status,
             'views'       => $this->views,
-            'user_id'     => $this->user_id,
         ];
     }
 }

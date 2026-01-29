@@ -7,18 +7,19 @@ use App\Http\Requests\Post\PostUpdatePostRequect;
 use App\Http\Resources\Post\MinifyPostResource;
 use App\Http\Resources\Post\PostRecource;
 use App\Models\Post;
+use App\Services\Post\DTO\CreatePostData;
+use App\Services\Post\DTO\UpdatePostData;
+use App\Services\Post\PostService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use PostService;
+use Symfony\Component\HttpFoundation\Response;
 
 class PostController extends Controller
 {
-    public PostService $service;
-    public function __construct()
+    public function __construct(private readonly PostService $service)
     {
-        $this->service = new PostService();
         $this->middleware('auth:sanctum')->only(['store', 'update', 'destroy']);
         $this->middleware('admin')->only(['store', 'update', 'destroy']);
         $this->middleware('post.published')->only(['show']);
@@ -27,9 +28,7 @@ class PostController extends Controller
 
     public function index(): AnonymousResourceCollection
     {
-        $posts = Post::query()
-            ->select(['id', 'title', 'thumbnail', 'views', 'created_at',])
-            ->get();
+        $posts = $this->service->getAllPosts();
 
         return MinifyPostResource::collection($posts);
     }
@@ -43,27 +42,63 @@ class PostController extends Controller
 
     public function update(PostUpdatePostRequect $request, Post $post): PostRecource
     {
-        return $this->service->update($request, $post);
+        $validated = $request->validated();
+        $dto = new UpdatePostData(
+            category_id: (int)$validated['category_id'],
+            title: $validated['title'],
+            body: $validated['body'],
+            thumbnail: $request->file('thumbnail'),
+            status: $validated['status'],
+            views: (int)($validated['views'] ?? $post->views),
+        );
+        $UpdatedPost = $this->service->update($dto, $post);
+        return new PostRecource($UpdatedPost);
     }
 
 
     public function store(PostRequest $request): JsonResponse
     {
-        return $this->service->store($request->data());
+        $validated = $request->validated();
+
+        $dto = new CreatePostData(
+            category_id: (int)$validated['category_id'],
+            title: $validated['title'],
+            body: $validated['body'],
+            thumbnail: $request->file('thumbnail'),
+            status: $validated['status'],
+            views: (int)($validated['views'] ?? 0),
+            user_id: (int)$request->user()->id,
+        );
+
+        $post = $this->service->store($dto);
+
+        return response()->json([
+            'message' => 'Post created successfully',
+            'postId' => $post->id,
+            'savedFiles' => $post->thumbnail ? [$post->thumbnail] : [],
+        ], Response::HTTP_CREATED);
     }
 
 
     public function destroy(Post $post): JsonResponse
     {
-        $post->delete();
-        return response()->json(['message' => 'Post deleted successfully']);
+        if ($this->service->deletePost($post)) {
+            return resOk(Response::HTTP_OK);
+        } else {
+            return responseFailed("Не удалось удалить пост", Response::HTTP_BAD_REQUEST);
+        }
     }
 
-    public function comment(Request $request, Post $post): Model
+    public function comment(Request $request, Post $post): JsonResponse
     {
-        return $post->comments()->create([
-            'user_id' => auth()->id(),
-            'text' => $request->string('text'),
-        ]);
+        // DTO можно не создавать, так как тут всего одно поле
+        $UpdatedPost = $this->service->createComment($post, $request);
+
+        return response()->json([
+            'message' => 'Post created successfully',
+            'postId' => $UpdatedPost->id,
+            'savedFiles' => $UpdatedPost->thumbnail ? [$UpdatedPost->thumbnail] : [],
+        ], Response::HTTP_CREATED);
+         
     }
 }
