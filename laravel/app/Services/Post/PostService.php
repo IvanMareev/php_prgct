@@ -2,16 +2,15 @@
 
 namespace App\Services\Post;
 
-use App\Http\Requests\Post\PostUpdatePostRequect;
-use App\Http\Resources\Post\PostRecource;
+
 use App\Models\Post;
 use App\Repositories\PostRepositoryInterface;
 use App\Services\Post\DTO\CreatePostData;
 use App\Services\UploadFiles\FileUploadService;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use App\Services\Post\DTO\UpdatePostData;
 
 final class PostService
 {
@@ -30,19 +29,19 @@ final class PostService
     }
 
 
-    public function update(PostUpdatePostRequect $request, Post $post): PostRecource
+    public function update(UpdatePostData $request, Post $post): static|null
     {
-        $data = $request->validated();
+        $data = $request->toArray();
 
         $data['thumbnail'] = $this->fileUploadService->uploadFile(
-            $request->file('thumbnail'),
+            $request->thumbnail,
             'public',
             'thumbnails',
             $post->thumbnail
         );
 
         $this->postRepository->update($post, $data);
-        return new PostRecource($post->fresh());
+        return $post->fresh();
     }
 
     public function store(CreatePostData $data): Post
@@ -50,19 +49,14 @@ final class PostService
         $data['thumbnail'] = $this->fileUploadService
             ->uploadFile($request->file['thumbnail'] ?? null, 'public', 'thumbnails');
 
-//        $postData = $data->only(['category_id', 'title', 'body', 'thumbnail', 'status', 'views']);
 
         return $this->postRepository->createForUser(auth()->id(), $data->toArray());
     }
 
 
-    public function deletePost(Post $post): JsonResponse
+    public function deletePost(Post $post): bool
     {
-        if ($this->postRepository->delete($post)) {
-            return resOk();
-        } else {
-            return responseFailed("Не удалось удалить пост");
-        }
+        return $this->postRepository->delete($post);
     }
 
 

@@ -85,12 +85,8 @@ final class ProductService
     }
 
 
-    public function deleteProduct(Product $product): JsonResponse
+    public function deleteProduct(Product $product): bool
     {
-        if ($status = $product->delete()) {
-            return resOk();
-        } else {
-            return responseFailed("Не удалось удалить продукт");
-        }
+        return $product->delete();
     }
 }

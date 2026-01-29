@@ -8,11 +8,13 @@ use App\Http\Resources\Post\MinifyPostResource;
 use App\Http\Resources\Post\PostRecource;
 use App\Models\Post;
 use App\Services\Post\DTO\CreatePostData;
+use App\Services\Post\DTO\UpdatePostData;
 use App\Services\Post\PostService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use App\Services\Post\DTO\UpdatePostRequect;
 
 class PostController extends Controller
 {
@@ -40,7 +42,17 @@ class PostController extends Controller
 
     public function update(PostUpdatePostRequect $request, Post $post): PostRecource
     {
-        return $this->service->update($request, $post);
+        $validated = $request->validated();
+        $dto = new UpdatePostData(
+            category_id: (int)$validated['category_id'],
+            title: $validated['title'],
+            body: $validated['body'],
+            thumbnail: $request->file('thumbnail'),
+            status: $validated['status'],
+            views: (int)($validated['views'] ?? $post->views),
+        );
+        $UpdatedPost = $this->service->update($dto, $post);
+        return new PostRecource($UpdatedPost);
     }
 
 
@@ -70,7 +82,11 @@ class PostController extends Controller
 
     public function destroy(Post $post): JsonResponse
     {
-        return $this->service->deletePost($post);
+        if ($this->service->deletePost($post)) {
+            return resOk();
+        } else {
+            return responseFailed("Не удалось удалить пост");
+        }
     }
 
     public function comment(Request $request, Post $post): Model

@@ -1,30 +1,34 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
+use App\Services\User\DTO\CreateTokenData;
+use App\Services\User\UserService;
 
 
 class UserController extends Controller
 {
+    public function __construct(private readonly UserService $userService)
+    {
+    }
     public function login(LoginRequest $request)
     {
-        $user = User::where('email', $request->email)->first();
+        $dto = new CreateTokenData(
+            email: $request->validated('email'),
+            password: $request->validated('password'),
+        );
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        $token = $this->userService->getAccessToken($dto);
+
+        if ($token === false) {
+            return responseFailed('Неверные учетные данные', 401);
+        } else {
             return response()->json([
-                'error' => ['message' => 'The provided credentials are incorrect.']
+                'access_token' => $token,
             ]);
-
         }
-
-        $token = $user->createToken('login')->plainTextToken;
-
-        return response()->json([
-            'access_token' => $token,
-        ]);
 
     }
 }

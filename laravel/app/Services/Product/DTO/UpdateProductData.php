@@ -1,6 +1,5 @@
 <?php
 namespace App\Services\Product\DTO;
-use App\Http\Requests\Product\UpdateProductRequest;
 
 final class UpdateProductData
 {
@@ -11,16 +10,6 @@ final class UpdateProductData
         public readonly ?array  $images,
     )
     {
-    }
-
-    public static function fromRequest(UpdateProductRequest $request): self
-    {
-        return new self(
-            name: $request->validated('name'),
-            price: $request->validated('price'),
-            description: $request->validated('description'),
-            images: $request->file('images'),
-        );
     }
 
     /** Только данные для update() */

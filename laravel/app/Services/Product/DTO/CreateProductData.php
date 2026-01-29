@@ -1,7 +1,6 @@
 <?php
 namespace App\Services\Product\DTO;
 
-use App\Http\Requests\Product\StoreRequest;
 use App\Enums\ProductStatus;
 
 final class CreateProductData
@@ -14,24 +13,6 @@ final class CreateProductData
         public readonly ?array $images,
         public readonly ProductStatus $status,
     ) {}
-
-    public static function fromRequest(StoreRequest $request): self
-    {
-        $images = $request->file('images');
-
-        if ($images && !is_array($images)) {
-            $images = [$images];
-        }
-
-        return new self(
-            name: $request->validated('name'),
-            description: $request->validated('description'),
-            price: (float)$request->validated('price'),
-            count: (int)$request->validated('count'),
-            images: $images,
-            status: ProductStatus::from($request->validated('status')),
-        );
-    }
 
     public function toArray(): array
     {

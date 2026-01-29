@@ -7,9 +7,11 @@ use App\Repositories\EloquentPostRepository;
 use App\Repositories\PostRepositoryInterface;
 use App\Repositories\Product\ProductRepositoryInterface;
 use App\Repositories\Product\EloquentProductRepository;
-use App\Services\Product\ProductService;
 use Illuminate\Support\ServiceProvider;
-use App\Services\FileUploadService;
+use App\Services\UploadFiles\FileUploadService;
+use App\Repositories\User\UserRepositoryInterface;
+use App\Repositories\User\EloquentUserRepository;
+
 
 
 class AppServiceProvider extends ServiceProvider
@@ -19,7 +21,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind('product', ProductService::class);
         $this->app->singleton(FileUploadService::class, function ($app) {
             return new FileUploadService();
         });
@@ -30,6 +31,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             ProductRepositoryInterface::class,
             EloquentProductRepository::class
+        );
+        $this->app->bind(
+            UserRepositoryInterface::class,
+            EloquentUserRepository::class
         );
     }
 
