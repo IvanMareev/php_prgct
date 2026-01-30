@@ -4,32 +4,30 @@ namespace App\Services\Post;
 
 
 use App\Models\Post;
+use App\Models\User;
 use App\Repositories\PostRepositoryInterface;
 use App\Services\Post\DTO\CreatePostData;
+use App\Services\Post\DTO\UpdatePostData;
 use App\Services\UploadFiles\FileUploadService;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use App\Services\Post\DTO\UpdatePostData;
 
 final class PostService
 {
 
     public function __construct(
-        private FileUploadService $fileUploadService,
-        private PostRepositoryInterface $postRepository
+        private readonly FileUploadService $fileUploadService,
+        private readonly PostRepositoryInterface $postRepository
     ) {
     }
 
     public function getAllPosts($fields = ['id', 'title', 'thumbnail', 'views', 'created_at']): Collection|array
     {
-
-
         return $this->postRepository->getAll($fields);
     }
 
 
-    public function update(UpdatePostData $request, Post $post): static|null
+    public function update(UpdatePostData $request, Post $post): Post
     {
         $data = $request->toArray();
 
@@ -41,16 +39,17 @@ final class PostService
         );
 
         $this->postRepository->update($post, $data);
+
         return $post->fresh();
     }
 
-    public function store(CreatePostData $data): Post
+    public function store(CreatePostData $data, User $user): Post
     {
         $data['thumbnail'] = $this->fileUploadService
             ->uploadFile($request->file['thumbnail'] ?? null, 'public', 'thumbnails');
 
 
-        return $this->postRepository->createForUser(auth()->id(), $data->toArray());
+        return $this->postRepository->createForUser($user->id, $data->toArray());
     }
 
 
@@ -64,7 +63,7 @@ final class PostService
     {
         return $this->postRepository->createComment(
             $post,
-            auth()->id(),
+            $request->user->id,
             $request->input('text')
         );
     }

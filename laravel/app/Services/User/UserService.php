@@ -1,11 +1,11 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App\Services\User;
 
-use App\Services\User\DTO\CreateTokenData;
 use App\Repositories\User\EloquentUserRepository;
+use App\Services\User\DTO\CreateTokenData;
+use Illuminate\Support\Facades\Hash;
 
 
 final class UserService
@@ -18,13 +18,11 @@ final class UserService
     public function getAccessToken(CreateTokenData $data):string|false
     {
         $user = $this->userRepository->getUser($data->email);
-        if (!$user || !Hash::check($data->password, $user->password)) {
+        if (!Hash::check($data->password, $user->password)) {
             return false;
 
         }
 
-        $token = $user->createToken('login')->plainTextToken;
-
-        return $token;
+        return $user->createToken('login')->plainTextToken;
     }
 }

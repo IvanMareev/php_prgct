@@ -2,19 +2,18 @@
 
 namespace App\Services\Post\DTO;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 
 class CreatePostData
 {
     public function __construct(
-        public int $category_id,
-        public string $title,
-        public string $body,
-        public ?UploadedFile $thumbnail,
-        public string $status,
-        public int $views,
-        public int $user_id,
+        public readonly int $category_id,
+        public readonly string $title,
+        public readonly string $body,
+        public readonly ?UploadedFile $thumbnail,
+        public readonly string $status,
+        public readonly int $views,
+        public readonly int $user_id,
     ) {}
 
     public function toArray(): array

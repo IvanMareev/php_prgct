@@ -1,7 +1,8 @@
 <?php
 
-namespace App\routes\groups;
+declare(strict_types=1);
 
+namespace App\routes\groups;
 
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;

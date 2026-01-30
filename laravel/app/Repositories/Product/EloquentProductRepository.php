@@ -6,6 +6,7 @@ namespace App\Repositories\Product;
 
 use App\Enums\ProductStatus;
 use App\Models\Product;
+use App\Models\User;
 use App\Services\Product\DTO\UpdateProductData;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -22,9 +23,9 @@ final class EloquentProductRepository implements ProductRepositoryInterface
             ->get();
     }
 
-    public function createProduct(array $data, array $imagePaths = []): Product
+    public function createProduct(User $user, array $data, array $imagePaths = []): Product
     {
-        $product = auth()->user()?->products()->create($data);
+        $product = $user->products()->create($data);
 
         foreach ($imagePaths as $path) {
             $product->images()->create([

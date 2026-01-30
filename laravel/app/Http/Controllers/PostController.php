@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Post\PostRequest;
@@ -10,19 +12,15 @@ use App\Models\Post;
 use App\Services\Post\DTO\CreatePostData;
 use App\Services\Post\DTO\UpdatePostData;
 use App\Services\Post\PostService;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Symfony\Component\HttpFoundation\Response;
 
-class PostController extends Controller
+final class PostController extends Controller
 {
     public function __construct(private readonly PostService $service)
     {
-        $this->middleware('auth:sanctum')->only(['store', 'update', 'destroy']);
-        $this->middleware('admin')->only(['store', 'update', 'destroy']);
-        $this->middleware('post.published')->only(['show']);
     }
 
 
@@ -52,6 +50,7 @@ class PostController extends Controller
             views: (int)($validated['views'] ?? $post->views),
         );
         $UpdatedPost = $this->service->update($dto, $post);
+
         return new PostRecource($UpdatedPost);
     }
 
@@ -66,11 +65,11 @@ class PostController extends Controller
             body: $validated['body'],
             thumbnail: $request->file('thumbnail'),
             status: $validated['status'],
-            views: (int)($validated['views'] ?? 0),
+            views: (int)($validated['views'] ?? null),
             user_id: (int)$request->user()->id,
         );
 
-        $post = $this->service->store($dto);
+        $post = $this->service->store($dto, $request->user());
 
         return response()->json([
             'message' => 'Post created successfully',
@@ -84,9 +83,9 @@ class PostController extends Controller
     {
         if ($this->service->deletePost($post)) {
             return resOk(Response::HTTP_OK);
-        } else {
-            return responseFailed("Не удалось удалить пост", Response::HTTP_BAD_REQUEST);
         }
+
+        return responseFailed("Не удалось удалить пост", Response::HTTP_BAD_REQUEST);
     }
 
     public function comment(Request $request, Post $post): JsonResponse
@@ -99,6 +98,5 @@ class PostController extends Controller
             'postId' => $UpdatedPost->id,
             'savedFiles' => $UpdatedPost->thumbnail ? [$UpdatedPost->thumbnail] : [],
         ], Response::HTTP_CREATED);
-         
     }
 }

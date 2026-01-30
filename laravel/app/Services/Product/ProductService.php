@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App\Services\Product;
@@ -7,19 +6,17 @@ namespace App\Services\Product;
 use App\Http\Requests\Product\StoreRequest;
 use App\Models\Product;
 use App\Models\ProductReview;
+use App\Models\User;
 use App\Repositories\Product\EloquentProductRepository;
 use App\Services\Product\DTO\CreateProductData;
 use App\Services\Product\DTO\UpdateProductData;
 use App\Services\UploadFiles\FileUploadService;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
 
 final class ProductService
 {
     private Product $product;
-
-
     public function __construct(
         private readonly FileUploadService         $fileUploadService,
         private readonly EloquentProductRepository $eloquentProductRepository)
@@ -32,7 +29,7 @@ final class ProductService
         return $this->eloquentProductRepository->getAllPublishedProduct($fields);
     }
 
-    public function store(CreateProductData $data): Product
+    public function store(CreateProductData $data, User $user): Product
     {
         $imagePaths = [];
 
@@ -45,6 +42,7 @@ final class ProductService
         }
 
         return $this->eloquentProductRepository->createProduct(
+            $user,
             $data->toArray(),
             $imagePaths
         );
@@ -78,7 +76,7 @@ final class ProductService
     public function addReview(StoreRequest $request): ProductReview
     {
         return $this->product->reviews()->create([
-            'user_id' => auth()->id(),
+            'user_id' => $request->user->id(),
             'text' => $request->string('text'),
             'rating' => $request->integer('rating'),
         ]);

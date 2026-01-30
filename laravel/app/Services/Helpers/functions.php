@@ -1,6 +1,5 @@
 <?php
 
-
 use Illuminate\Http\JsonResponse;
 
 function resOk(int $code = 200)

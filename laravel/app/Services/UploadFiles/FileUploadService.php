@@ -7,9 +7,6 @@ use Illuminate\Support\Facades\Storage;
 
 class FileUploadService
 {
-    /**
-     * Загружает один файл и удаляет старый, если указан.
-     */
     public function uploadFile(?UploadedFile $file, string $disk = 'public', string $directory = 'uploads', ?string $oldPath = null): ?string
     {
         if (!$file) {
@@ -25,9 +22,6 @@ class FileUploadService
         return $file->store($directory, $disk);
     }
 
-    /**
-     * Загружает несколько файлов.
-     */
     public function uploadMultipleFiles(array $files, string $disk = 'public', string $directory = 'uploads'): array
     {
         $paths = [];
@@ -39,9 +33,6 @@ class FileUploadService
         return $paths;
     }
 
-    /**
-     * Удаляет файл.
-     */
     public function deleteFile(string $path, string $disk = 'public'): bool
     {
         return Storage::disk($disk)->delete($path);

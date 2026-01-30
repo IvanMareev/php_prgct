@@ -65,7 +65,7 @@ class Product extends Model
     {
         return $this->hasMany(ProductReview::class);
     }
-
+    
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class)->select(['url']);

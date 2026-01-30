@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Controllers;
@@ -25,11 +26,10 @@ class UserController extends Controller
 
         if ($token === false) {
             return responseFailed('Неверные учетные данные', Response::HTTP_BAD_REQUEST);
-        } else {
-            return response()->json([
-                'access_token' => $token,
-            ], Response::HTTP_OK);
         }
 
+        return response()->json([
+            'access_token' => $token,
+        ], Response::HTTP_OK);
     }
 }

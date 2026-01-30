@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Enums\ProductStatus;
@@ -20,9 +22,6 @@ class ProductController extends Controller
 {
     public function __construct(private readonly ProductService $productService)
     {
-        $this->middleware('auth:sanctum')->only(['store', 'update', 'destroy']);
-        $this->middleware('product.draft')->only(['show']);
-        $this->middleware('admin')->only(['store', 'update', 'destroy']);
     }
 
     public function index(): AnonymousResourceCollection
@@ -41,10 +40,6 @@ class ProductController extends Controller
     {
         $images = $request->file('images');
 
-        if ($images && !is_array($images)) {
-            $images = [$images];
-        }
-
         $dto = new CreateProductData(
             name: $request->validated('name'),
             description: $request->validated('description'),
@@ -54,7 +49,7 @@ class ProductController extends Controller
             status: ProductStatus::from($request->validated('status')),
         );
 
-        $product = $this->productService->store($dto);
+        $product = $this->productService->store($dto, $request->user());
 
         return new ProductResource($product);
     }
@@ -78,13 +73,12 @@ class ProductController extends Controller
 
         return new ProductResource($product);
     }
-
     public function destroy(Product $product): JsonResponse
     {
         if ($this->productService->deleteProduct($product)) {
             return resOk(Response::HTTP_OK);
-        } else {
-            return responseFailed("Не удалось удалить продукт", Response::HTTP_BAD_REQUEST);
         }
+
+        return responseFailed("Не удалось удалить продукт", Response::HTTP_BAD_REQUEST);
     }
 }
