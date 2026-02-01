@@ -12,17 +12,15 @@ final class UpdateProductData
     {
     }
 
-    /** Только данные для update() */
     public function toArray(): array
     {
         return array_filter([
             'name' => $this->name,
             'price' => $this->price,
             'description' => $this->description,
-        ], fn($v) => $v !== null);
+        ], static fn($product) => $product !== null);
     }
 
-    /** Отдельно файлы */
     public function images(): ?array
     {
         return $this->images;

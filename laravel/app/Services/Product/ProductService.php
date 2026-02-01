@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace App\Services\Product;
 
-use App\Http\Requests\Product\StoreRequest;
+use App\Http\Requests\Product\StoreReviewRequest;
 use App\Models\Product;
 use App\Models\ProductReview;
 use App\Models\User;
@@ -12,7 +12,9 @@ use App\Services\Product\DTO\CreateProductData;
 use App\Services\Product\DTO\UpdateProductData;
 use App\Services\UploadFiles\FileUploadService;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
+use Symfony\Component\HttpFoundation\Response;
 
 final class ProductService
 {
@@ -36,8 +38,8 @@ final class ProductService
         if ($data->images()) {
             $imagePaths = $this->fileUploadService->uploadMultipleFiles(
                 $data->images(),
-                'public',
-                'product_images'
+                config('uploads.products.disk'),
+                config('uploads.products.images_dir')
             );
         }
 
@@ -57,8 +59,8 @@ final class ProductService
         if ($images) {
             $paths = $this->fileUploadService->uploadMultipleFiles(
                 $images,
-                'public',
-                'product_images'
+                config('uploads.products.disk'),
+                config('uploads.products.images_dir')
             );
         }
 
@@ -73,7 +75,7 @@ final class ProductService
     }
 
 
-    public function addReview(StoreRequest $request): ProductReview
+    public function addReview(StoreReviewRequest $request): ProductReview
     {
         return $this->product->reviews()->create([
             'user_id' => $request->user->id(),
@@ -83,8 +85,16 @@ final class ProductService
     }
 
 
-    public function deleteProduct(Product $product): bool
+    public function deleteProduct(Product $product): JsonResponse
     {
-        return $product->delete();
+        if ($product->delete()) {
+            return response()->json([
+                'message' => __('messages.deleted'),
+            ], Response::HTTP_OK);
+        }
+
+        return response()->json([
+            'message' => __('messages.not_deleted'),
+        ], Response::HTTP_BAD_REQUEST);
     }
 }

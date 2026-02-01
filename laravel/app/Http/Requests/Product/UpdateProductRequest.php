@@ -1,9 +1,9 @@
 <?php
+
 declare(strict_types=1);
 namespace App\Http\Requests\Product;
 
 use App\Http\Requests\ApiRequest;
-use App\Services\Product\DTO\CreateProductData;
 
 class UpdateProductRequest extends ApiRequest
 {

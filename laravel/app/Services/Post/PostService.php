@@ -33,8 +33,8 @@ final class PostService
 
         $data['thumbnail'] = $this->fileUploadService->uploadFile(
             $request->thumbnail,
-            'public',
-            'thumbnails',
+            config('uploads.posts.disk'),
+            config('uploads.posts.images_dir'),
             $post->thumbnail
         );
 

@@ -25,7 +25,9 @@ class UserController extends Controller
         $token = $this->userService->getAccessToken($dto);
 
         if ($token === false) {
-            return responseFailed('Неверные учетные данные', Response::HTTP_BAD_REQUEST);
+            return response()->json([
+                'message' => __('not_deleted')
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         return response()->json([

@@ -11,6 +11,7 @@ use App\Http\Requests\Product\UpdateProductRequest;
 use App\Http\Resources\Product\MinifyProductResource;
 use App\Http\Resources\Product\ProductResource;
 use App\Models\Product;
+use App\Models\ProductReview;
 use App\Services\Product\DTO\CreateProductData;
 use App\Services\Product\DTO\UpdateProductData;
 use App\Services\Product\ProductService;
@@ -20,6 +21,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends Controller
 {
+    private $json;
+
     public function __construct(private readonly ProductService $productService)
     {
     }
@@ -55,7 +58,7 @@ class ProductController extends Controller
     }
 
 
-    public function review(StoreReviewRequest $request, Product $product)
+    public function review(StoreReviewRequest $request, Product $product): ProductReview
     {
         return $this->productService->setProduct($product)->addReview($request);
     }
@@ -76,9 +79,15 @@ class ProductController extends Controller
     public function destroy(Product $product): JsonResponse
     {
         if ($this->productService->deleteProduct($product)) {
-            return resOk(Response::HTTP_OK);
+            return response()->json([
+                'message' => __('posts.deleted'),
+            ], Response::HTTP_OK);
         }
 
-        return responseFailed("Не удалось удалить продукт", Response::HTTP_BAD_REQUEST);
+        $this->json = response()->json([
+            'message' => __('messages.not_deleted')
+        ], Response::HTTP_BAD_REQUEST);
+
+        return $this->json;
     }
 }

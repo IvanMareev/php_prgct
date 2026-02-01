@@ -7,7 +7,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Post\PostRequest;
 use App\Http\Requests\Post\PostUpdatePostRequect;
 use App\Http\Resources\Post\MinifyPostResource;
-use App\Http\Resources\Post\PostRecource;
+use App\Http\Resources\Post\PostResource;
 use App\Models\Post;
 use App\Services\Post\DTO\CreatePostData;
 use App\Services\Post\DTO\UpdatePostData;
@@ -32,13 +32,13 @@ final class PostController extends Controller
     }
 
 
-    public function show(Post $post): PostRecource
+    public function show(Post $post): PostResource
     {
-        return new PostRecource($post);
+        return new PostResource($post);
     }
 
 
-    public function update(PostUpdatePostRequect $request, Post $post): PostRecource
+    public function update(PostUpdatePostRequect $request, Post $post): PostResource
     {
         $validated = $request->validated();
         $dto = new UpdatePostData(
@@ -51,7 +51,7 @@ final class PostController extends Controller
         );
         $UpdatedPost = $this->service->update($dto, $post);
 
-        return new PostRecource($UpdatedPost);
+        return new PostResource($UpdatedPost);
     }
 
 
@@ -72,7 +72,7 @@ final class PostController extends Controller
         $post = $this->service->store($dto, $request->user());
 
         return response()->json([
-            'message' => 'Post created successfully',
+            'message' => __('posts.created'),
             'postId' => $post->id,
             'savedFiles' => $post->thumbnail ? [$post->thumbnail] : [],
         ], Response::HTTP_CREATED);
@@ -82,10 +82,14 @@ final class PostController extends Controller
     public function destroy(Post $post): JsonResponse
     {
         if ($this->service->deletePost($post)) {
-            return resOk(Response::HTTP_OK);
+            return response()->json([
+                'message' => __('posts.deleted'),
+            ], Response::HTTP_OK);
         }
 
-        return responseFailed("Не удалось удалить пост", Response::HTTP_BAD_REQUEST);
+        return response()->json([
+            'message' => __('messages.not_deleted')
+        ], Response::HTTP_BAD_REQUEST);
     }
 
     public function comment(Request $request, Post $post): JsonResponse
@@ -94,7 +98,7 @@ final class PostController extends Controller
         $UpdatedPost = $this->service->createComment($post, $request);
 
         return response()->json([
-            'message' => 'Post created successfully',
+            'message' => __('posts.created'),
             'postId' => $UpdatedPost->id,
             'savedFiles' => $UpdatedPost->thumbnail ? [$UpdatedPost->thumbnail] : [],
         ], Response::HTTP_CREATED);

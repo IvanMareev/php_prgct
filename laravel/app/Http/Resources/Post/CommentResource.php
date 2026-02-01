@@ -1,14 +1,16 @@
 <?php
 
+declare(strict_types=1);
 namespace App\Http\Resources\Post;
 
+use App\Models\Comment;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \App\Models\Comment
+ * @mixin Comment
  * **/
-class CommentRecource extends JsonResource
+class CommentResource extends JsonResource
 {
     /**
      * Transform the resource into an array.

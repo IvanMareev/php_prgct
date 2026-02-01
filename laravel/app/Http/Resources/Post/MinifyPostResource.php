@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
 namespace App\Http\Resources\Post;
 
+use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \App\Models\Post
+ * @mixin Post
  * **/
 class MinifyPostResource extends JsonResource
 {

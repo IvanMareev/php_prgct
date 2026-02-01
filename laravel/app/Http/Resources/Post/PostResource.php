@@ -1,15 +1,16 @@
 <?php
 
+declare(strict_types=1);
 namespace App\Http\Resources\Post;
 
+use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
-* @mixin \App\Models\Post
+ * @mixin Post
  * **/
-
-class PostRecource extends JsonResource
+class PostResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -27,7 +28,7 @@ class PostRecource extends JsonResource
             'createdAt' => $this->created_at,
             'authorName' => $this->user?->name,
             'categoryName' => $this->category?->name,
-            'comments' => CommentRecource::collection($this->comments),
+            'comments' => CommentResource::collection($this->comments),
         ];
     }
 }

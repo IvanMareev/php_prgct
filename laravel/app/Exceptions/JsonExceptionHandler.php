@@ -17,23 +17,14 @@ use Throwable;
 
 class JsonExceptionHandler extends ExceptionHandler
 {
-    /**
-     * Формат ответа для всех исключений
-     */
     public function render($request, Throwable $e): Response
     {
-        // Всегда возвращаем JSON для API запросов
         if ($request->expectsJson() || $this->isApiRequest($request)) {
             return $this->handleJsonException($e);
         }
 
-        // Для web-запросов оставляем стандартное поведение
         return parent::render($request, $e);
     }
-
-    /**
-     * Обработка исключений для JSON API
-     */
     protected function handleJsonException(Throwable $e): JsonResponse
     {
         $statusCode = $this->getStatusCode($e);
@@ -44,7 +35,6 @@ class JsonExceptionHandler extends ExceptionHandler
             'timestamp' => now()->toISOString(),
         ];
 
-        // Добавляем детали ошибки только в debug режиме
         if (config('app.debug')) {
             $response['debug'] = [
                 'exception' => get_class($e),
@@ -54,7 +44,6 @@ class JsonExceptionHandler extends ExceptionHandler
             ];
         }
 
-        // Для валидации добавляем ошибки полей
         if ($e instanceof ValidationException) {
             $response['errors'] = $e->errors();
         }
@@ -62,9 +51,7 @@ class JsonExceptionHandler extends ExceptionHandler
         return response()->json($response, $statusCode);
     }
 
-    /**
-     * Определяем код статуса HTTP
-     */
+
     protected function getStatusCode(Throwable $e): int
     {
         return match (true) {
@@ -95,9 +82,7 @@ class JsonExceptionHandler extends ExceptionHandler
         };
     }
 
-    /**
-     * Получаем код ошибки для клиента
-     */
+
     protected function getErrorCode(Throwable $e): string
     {
         return match (true) {
@@ -111,28 +96,23 @@ class JsonExceptionHandler extends ExceptionHandler
         };
     }
 
-    /**
-     * Безопасный стектрейс (без чувствительных данных)
-     */
+
     protected function getSafeTrace(Throwable $e): array
     {
         $trace = $e->getTrace();
-        
-        // Очищаем trace от чувствительных данных
+
         foreach ($trace as &$item) {
             unset($item['args'], $item['object']);
         }
-        
+
         return array_slice($trace, 0, 5); // Только первые 5 уровней
     }
 
-    /**
-     * Проверяем, является ли запрос API запросом
-     */
+
     protected function isApiRequest(Request $request): bool
     {
-        return $request->is('api/*') || 
-               $request->is('*/api/*') || 
+        return $request->is('api/*') ||
+               $request->is('*/api/*') ||
                $request->header('Accept') === 'application/json';
     }
 }
