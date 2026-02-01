@@ -57,11 +57,9 @@ class JsonExceptionHandler extends ExceptionHandler
         return match (true) {
             $e instanceof HttpException => $e->getStatusCode(),
             $e instanceof AuthenticationException => 401,
-            $e instanceof ModelNotFoundException => 404,
-            $e instanceof NotFoundHttpException => 404,
+            $e instanceof ModelNotFoundException, $e instanceof NotFoundHttpException => 404,
             $e instanceof MethodNotAllowedHttpException => 405,
             $e instanceof ValidationException => 422,
-            $e instanceof QueryException => 500,
             default => 500
         };
     }

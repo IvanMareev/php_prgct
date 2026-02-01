@@ -2,10 +2,15 @@
 
 namespace App\Models;
 
+use Database\Factories\ProductReviewFactory;
+use Eloquent;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Carbon;
 
 /**
  * App\Models\ProductReview
@@ -15,25 +20,24 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property int|null $products_id
  * @property string|null $text
  * @property int|null $rating
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product> $products
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Collection<int, Product> $products
  * @property-read int|null $products_count
- * @property-read \App\Models\User|null $user
- * @method static \Database\Factories\ProductReviewFactory factory($count = null, $state = [])
- * @method static \Illuminate\Database\Eloquent\Builder|ProductReview newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|ProductReview newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|ProductReview query()
- * @method static \Illuminate\Database\Eloquent\Builder|ProductReview whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|ProductReview whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|ProductReview whereProductsId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|ProductReview whereRating($value)
- * @method static \Illuminate\Database\Eloquent\Builder|ProductReview whereText($value)
- * @method static \Illuminate\Database\Eloquent\Builder|ProductReview whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|ProductReview whereUserId($value)
+ * @property-read User|null $user
+ * @method static ProductReviewFactory factory($count = null, $state = [])
+ * @method static Builder|ProductReview newModelQuery()
+ * @method static Builder|ProductReview newQuery()
+ * @method static Builder|ProductReview query()
+ * @method static Builder|ProductReview whereCreatedAt($value)
+ * @method static Builder|ProductReview whereId($value)
+ * @method static Builder|ProductReview whereProductsId($value)
+ * @method static Builder|ProductReview whereRating($value)
+ * @method static Builder|ProductReview whereText($value)
+ * @method static Builder|ProductReview whereUpdatedAt($value)
+ * @method static Builder|ProductReview whereUserId($value)
  * @property int|null $product_id
- * @method static \Illuminate\Database\Eloquent\Builder|ProductReview whereProductId($value)
- * @mixin \Eloquent
+ * @method static Builder|ProductReview whereProductId($value)
  */
 class ProductReview extends Model
 {

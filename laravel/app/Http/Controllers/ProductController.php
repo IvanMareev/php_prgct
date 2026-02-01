@@ -21,7 +21,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends Controller
 {
-    private $json;
 
     public function __construct(private readonly ProductService $productService)
     {
@@ -84,10 +83,8 @@ class ProductController extends Controller
             ], Response::HTTP_OK);
         }
 
-        $this->json = response()->json([
+        return response()->json([
             'message' => __('messages.not_deleted')
         ], Response::HTTP_BAD_REQUEST);
-
-        return $this->json;
     }
 }
