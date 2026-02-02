@@ -2,22 +2,20 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\PostController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::apiResource('posts', PostController::class)
-    ->only(['index', 'show'])
-    ->middleware('post.published');
+Route::apiResource('products', ProductController::class)
+    ->only(['index', 'show']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('posts.comments', PostController::class)
-        ->only('store');
+    Route::post('products/{product}/reviews', [ProductController::class, 'review']);
 });
 
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-    Route::apiResource('posts', PostController::class)
+    Route::apiResource('products', ProductController::class)
         ->only(['store', 'update', 'destroy']);
 });

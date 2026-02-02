@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ec2d20a20b5760e93664f220b4c65f5b",
+    "content-hash": "259be8d798be27c011a4abca66235836",
     "packages": [
         {
             "name": "brick/math",
@@ -555,6 +555,69 @@
                 }
             ],
             "time": "2025-03-06T22:45:56+00:00"
+        },
+        {
+            "name": "faustoff/laravel-contextify",
+            "version": "4.1.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/faustoFF/laravel-contextify.git",
+                "reference": "8f90b136a38c45f964e63fb1db402239950f2d1c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/faustoFF/laravel-contextify/zipball/8f90b136a38c45f964e63fb1db402239950f2d1c",
+                "reference": "8f90b136a38c45f964e63fb1db402239950f2d1c",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/contracts": "^9.0|^10.0|^11.0|^12.0",
+                "illuminate/log": "^9.0|^10.0|^11.0|^12.0",
+                "illuminate/notifications": "^9.0|^10.0|^11.0|^12.0",
+                "illuminate/support": "^9.0|^10.0|^11.0|^12.0",
+                "monolog/monolog": "^2.0|^3.0",
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.0",
+                "laravel-notification-channels/telegram": "*",
+                "orchestra/testbench": "^7.0 || ^8.0 || ^9.0 || ^10.0",
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^9.6 || ^10.0 || ^11.0"
+            },
+            "suggest": {
+                "ext-pcntl": "Allows to use Console Terminatable trait",
+                "laravel-notification-channels/telegram": "Allows sending notifications to Telegram"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Faustoff\\Contextify\\ContextifyServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Faustoff\\Contextify\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "faustoFF",
+                    "email": "kulakov89@gmail.com"
+                }
+            ],
+            "description": "Contextual logging with inline notifications for Laravel.",
+            "support": {
+                "issues": "https://github.com/faustoFF/laravel-contextify/issues",
+                "source": "https://github.com/faustoFF/laravel-contextify/tree/4.1.2"
+            },
+            "time": "2026-01-24T18:34:16+00:00"
         },
         {
             "name": "fruitcake/php-cors",

@@ -28,6 +28,8 @@ class ProductController extends Controller
 
     public function index(): AnonymousResourceCollection
     {
+        telegram_log('📦 Запрос списка опубликованных товаров');
+
         return MinifyProductResource::collection(
             $this->productService->published()
         );
