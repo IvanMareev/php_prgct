@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Adapters\Interfaces\TelegramInterface;
+use App\Adapters\SendNotifyTelegramAdapter;
 use App\Http\Resources\Product\ProductResource;
 use App\Repositories\EloquentPostRepository;
 use App\Repositories\PostRepositoryInterface;
@@ -36,6 +38,10 @@ class AppServiceProvider extends ServiceProvider
             UserRepositoryInterface::class,
             EloquentUserRepository::class
         );
+        $this->app->bind(
+            TelegramInterface::class,
+            SendNotifyTelegramAdapter::class
+        );    
     }
 
     /**

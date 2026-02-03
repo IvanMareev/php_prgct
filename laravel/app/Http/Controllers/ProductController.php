@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Adapters\SendNotifyTelegramAdapter;
 use App\Enums\ProductStatus;
 use App\Http\Requests\Product\StoreRequest;
 use App\Http\Requests\Product\StoreReviewRequest;
@@ -22,13 +23,13 @@ use Symfony\Component\HttpFoundation\Response;
 class ProductController extends Controller
 {
 
-    public function __construct(private readonly ProductService $productService)
+    public function __construct(private readonly ProductService $productService, private readonly SendNotifyTelegramAdapter $telegramAdapter)
     {
     }
 
     public function index(): AnonymousResourceCollection
     {
-        telegram_log('📦 Запрос списка опубликованных товаров');
+        $this->telegramAdapter->telegram_log('📦 Запрос списка опубликованных товаров');
 
         return MinifyProductResource::collection(
             $this->productService->published()
