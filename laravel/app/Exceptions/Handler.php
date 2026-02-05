@@ -5,6 +5,7 @@ namespace App\Exceptions;
 
 use App\Adapters\SendNotifyTelegramAdapter;
 use App\Exceptions\Product\ProductNotFoundException;
+use App\Services\DebugTelegramLogger;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Support\Facades\Log;
@@ -54,16 +55,34 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $e)
     {
-        // Отправляем ошибку в Telegram ПЕРЕД обработкой
-        error_log("Handler::render() вызван для: " . get_class($e));
+        DebugTelegramLogger::log("=== EXCEPTION FLOW START ===");
+        DebugTelegramLogger::logException($e, 'render()');
         
-        if (!$this->isIgnoredException($e)) {
+        // Проверяем конфигурацию на старте
+        DebugTelegramLogger::logConfig();
+        
+        // Определяем, нужно ли отправлять в Telegram
+        $isIgnored = $this->isIgnoredException($e);
+        DebugTelegramLogger::logStep('render()', [
+            'exception_class' => get_class($e),
+            'is_ignored' => $isIgnored,
+            'should_send_to_telegram' => !$isIgnored,
+        ]);
+        
+        // Отправляем ошибку в Telegram ПЕРЕД обработкой
+        if (!$isIgnored) {
+            DebugTelegramLogger::logStep('Attempting sendToTelegram() from render()');
             try {
                 $this->sendToTelegram($e);
-                error_log("render() sendToTelegram успешен");
+                DebugTelegramLogger::logSuccess('sendToTelegram() from render()');
             } catch (Throwable $telegramException) {
-                error_log("render() Ошибка sendToTelegram: " . $telegramException->getMessage());
+                DebugTelegramLogger::logError('sendToTelegram() from render()', [
+                    'error' => $telegramException->getMessage(),
+                    'exception_class' => get_class($telegramException),
+                ]);
             }
+        } else {
+            DebugTelegramLogger::logStep('Exception is ignored, skipping Telegram');
         }
 
         return parent::render($request, $e);
@@ -74,27 +93,17 @@ class Handler extends ExceptionHandler
      */
     public function report(Throwable $e): void
     {
-        // Логируем для отладки (удалить позже)
-        error_log("Handler::report() вызван для: " . get_class($e) . " - " . $e->getMessage());
+        DebugTelegramLogger::logException($e, 'report()');
         
-        // Отправляем все критические ошибки в Telegram
-        // shouldReport проверяет только исключения - для Error может вернуть false
-        // поэтому проверяем тип напрямую
-        $shouldSendToTelegram = !$this->isIgnoredException($e);
+        $isIgnored = $this->isIgnoredException($e);
+        DebugTelegramLogger::logStep('report()', [
+            'exception_class' => get_class($e),
+            'is_ignored' => $isIgnored,
+        ]);
         
-        error_log("shouldSendToTelegram: " . ($shouldSendToTelegram ? 'true' : 'false'));
-        
-        if ($shouldSendToTelegram) {
-            try {
-                $this->sendToTelegram($e);
-                error_log("sendToTelegram успешен");
-            } catch (Throwable $telegramException) {
-                // Молча игнорируем ошибки Telegram отправки
-                error_log("Ошибка sendToTelegram: " . $telegramException->getMessage());
-            }
-        }
-
         parent::report($e);
+        
+        DebugTelegramLogger::log("=== EXCEPTION FLOW END ===");
     }
 
     /**
@@ -102,24 +111,50 @@ class Handler extends ExceptionHandler
      */
     private function sendToTelegram(Throwable $e): void
     {
+        DebugTelegramLogger::logStep('sendToTelegram() START', [
+            'exception' => get_class($e),
+        ]);
+
         // Получаем информацию об окружении
         $token = env('TELEGRAM_BOT_TOKEN');
         $chatId = env('CONTEXTIFY_TELEGRAM_CHAT_ID');
 
+        DebugTelegramLogger::logStep('Checking credentials', [
+            'token_exists' => !empty($token),
+            'token_length' => strlen($token ?? ''),
+            'chat_id_exists' => !empty($chatId),
+            'chat_id' => $chatId,
+        ]);
+
         // Проверка конфигурации
         if (empty($token) || empty($chatId)) {
-            error_log("sendToTelegram: Нет токена или chatId");
+            DebugTelegramLogger::logError('Missing token or chatId', [
+                'token' => empty($token) ? 'EMPTY' : 'OK',
+                'chatId' => empty($chatId) ? 'EMPTY' : 'OK',
+            ]);
             return;
         }
 
         $environment = env('APP_ENV', 'unknown');
         $appName = env('APP_NAME', 'Laravel App');
         
+        DebugTelegramLogger::logStep('Environment info', [
+            'env' => $environment,
+            'app_name' => $appName,
+        ]);
+
         // Используем встроенные функции PHP вместо Laravel функций
         $timestamp = date('Y-m-d H:i:s');
         $basePath = base_path();
         $basePathLen = strlen($basePath);
         $filePath = substr($e->getFile(), $basePathLen);
+
+        DebugTelegramLogger::logStep('File path processing', [
+            'base_path' => $basePath,
+            'base_path_len' => $basePathLen,
+            'original_file' => $e->getFile(),
+            'processed_file' => $filePath,
+        ]);
 
         // Формируем сообщение об ошибке
         $message = sprintf(
@@ -138,16 +173,29 @@ class Handler extends ExceptionHandler
             $timestamp
         );
 
+        DebugTelegramLogger::logStep('Message formatted', [
+            'message_length' => strlen($message),
+        ]);
+
         // Добавляем первые несколько строк stacktrace
         $trace = $this->getRelevantStackTrace($e);
         if (!empty($trace)) {
             $message .= "\n\n<b>Стек вызовов:</b>\n<pre>" . htmlspecialchars($trace, ENT_QUOTES, 'UTF-8') . "</pre>";
+            DebugTelegramLogger::logStep('Stack trace added', [
+                'trace_length' => strlen($trace),
+            ]);
         }
 
-        error_log("sendToTelegram: Готово к отправке сообщения: " . strlen($message) . " символов");
+        DebugTelegramLogger::logStep('Calling sendViaTelegram()', [
+            'final_message_length' => strlen($message),
+            'token_exists' => !empty($token),
+            'chat_id' => $chatId,
+        ]);
         
         // Отправляем через Telegram Bot API
         $this->sendViaTelegram($token, $chatId, $message);
+        
+        DebugTelegramLogger::logSuccess('sendToTelegram() COMPLETE');
     }
 
     /**
@@ -155,7 +203,16 @@ class Handler extends ExceptionHandler
      */
     private function sendViaTelegram(string $token, string $chatId, string $message): void
     {
+        DebugTelegramLogger::logStep('sendViaTelegram() START');
+
         $url = "https://api.telegram.org/bot{$token}/sendMessage";
+        
+        DebugTelegramLogger::logStep('Building payload', [
+            'url' => $url,
+            'chat_id' => $chatId,
+            'message_length' => strlen($message),
+        ]);
+
         $payload = [
             'chat_id' => (int) $chatId,
             'text' => $message,
@@ -165,18 +222,24 @@ class Handler extends ExceptionHandler
         $data = json_encode($payload);
         
         if ($data === false) {
-            error_log("sendViaTelegram: JSON encode failed");
+            DebugTelegramLogger::logError('JSON encode failed', [
+                'last_json_error' => json_last_error_msg(),
+            ]);
             return;
         }
 
-        error_log("sendViaTelegram: Отправка на $url");
-        
+        DebugTelegramLogger::logStep('JSON encoded successfully', [
+            'json_length' => strlen($data),
+        ]);
+
         // Используем curl для отправки
         $ch = curl_init($url);
         if ($ch === false) {
-            error_log("sendViaTelegram: curl_init failed");
+            DebugTelegramLogger::logError('curl_init failed');
             return;
         }
+
+        DebugTelegramLogger::logStep('curl initialized');
 
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
@@ -186,15 +249,36 @@ class Handler extends ExceptionHandler
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
+        DebugTelegramLogger::logStep('curl options set, executing...');
+
         $response = curl_exec($ch);
         $curlError = curl_error($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErrno = curl_errno($ch);
         curl_close($ch);
-        
-        error_log("sendViaTelegram: HTTP Code: $httpCode, Response: " . substr($response, 0, 200));
-        if (!empty($curlError)) {
-            error_log("sendViaTelegram: Curl Error: $curlError");
+
+        DebugTelegramLogger::logStep('curl_exec completed', [
+            'http_code' => $httpCode,
+            'curl_errno' => $curlErrno,
+            'curl_error' => $curlError,
+            'response_length' => strlen($response ?? ''),
+            'response_preview' => substr($response ?? '', 0, 300),
+        ]);
+
+        if ($httpCode === 200) {
+            DebugTelegramLogger::logSuccess('Message sent to Telegram', [
+                'http_code' => $httpCode,
+            ]);
+        } else {
+            DebugTelegramLogger::logError('Telegram API returned error', [
+                'http_code' => $httpCode,
+                'curl_error' => $curlError,
+                'curl_errno' => $curlErrno,
+                'response' => $response,
+            ]);
         }
+
+        DebugTelegramLogger::logSuccess('sendViaTelegram() COMPLETE');
     }
 
     /**
@@ -231,7 +315,18 @@ class Handler extends ExceptionHandler
     private function isIgnoredException(Throwable $e): bool
     {
         // Не отправляем 404 и другие HTTP исключения в Telegram
-        return $e instanceof NotFoundHttpException ||
-               $e instanceof AuthorizationException;
+        $isNotFound = $e instanceof NotFoundHttpException;
+        $isAuth = $e instanceof AuthorizationException;
+        
+        $result = $isNotFound || $isAuth;
+        
+        DebugTelegramLogger::logStep('isIgnoredException check', [
+            'exception_class' => get_class($e),
+            'is_not_found_exception' => $isNotFound,
+            'is_auth_exception' => $isAuth,
+            'result_is_ignored' => $result,
+        ]);
+        
+        return $result;
     }
 }
