@@ -15,7 +15,10 @@ final class SendNotifyTelegramAdapter implements TelegramInterface
 
             // Проверка конфигурации
             if (empty($token) || empty($chatId)) {
-                Log::warning('Telegram не настроен: отсутствует токен или Chat ID');
+                \Log::warning('Telegram не настроен: отсутствует токен или Chat ID', [
+                    'has_token' => !empty($token),
+                    'has_chat_id' => !empty($chatId),
+                ]);
                 return;
             }
 
@@ -34,22 +37,40 @@ final class SendNotifyTelegramAdapter implements TelegramInterface
                 'parse_mode' => 'HTML',
             ];
 
-            // Используем curl для асинхронной отправки (не ждём ответа)
+            // Используем curl для отправки
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 2); // Быстрый timeout
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
-            curl_exec($ch);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
             curl_close($ch);
+
+            // Логируем результат
+            if ($httpCode !== 200) {
+                \Log::warning('Telegram API вернул ошибку', [
+                    'http_code' => $httpCode,
+                    'response' => $response,
+                    'curl_error' => $curlError,
+                    'message_length' => strlen($text),
+                ]);
+            } else {
+                \Log::debug('Сообщение успешно отправлено в Telegram');
+            }
 
         } catch (\Throwable $e) {
             // Логируем ошибку, но не прерываем запрос
             \Illuminate\Support\Facades\Log::error('Ошибка отправки в Telegram', [
-                'message' => $message,
-                'error' => $e->getMessage(),
+                'error_class' => get_class($e),
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
         }
     }

@@ -26,6 +26,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(FileUploadService::class, function ($app) {
             return new FileUploadService();
         });
+        
+        // Регистрируем адаптер Telegram как singleton
+        $this->app->singleton(SendNotifyTelegramAdapter::class);
+        
         $this->app->bind(
             PostRepositoryInterface::class,
             EloquentPostRepository::class
