@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Adapters\Interfaces;
 declare(strict_types=1);
+namespace App\Adapters\Interfaces;
+
 
 
 interface TelegramInterface

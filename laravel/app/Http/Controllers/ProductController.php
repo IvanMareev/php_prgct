@@ -29,7 +29,7 @@ class ProductController extends Controller
 
     public function index(): AnonymousResourceCollection
     {
-        $this->telegramAdapter->telegram_log('📦 Запрос списка опубликованных товаров');
+        $this->telegramAdapter->telegram_log('запрос списка опубликованных товаров');
 
         return MinifyProductResource::collection(
             $this->productService->published()
@@ -48,8 +48,8 @@ class ProductController extends Controller
         $dto = new CreateProductData(
             name: $request->validated('name'),
             description: $request->validated('description'),
-            price: (float)$request->validated('price'),
-            count: (int)$request->validated('count'),
+            price: (float) $request->validated('price'),
+            count: (int) $request->validated('count'),
             images: $images,
             status: ProductStatus::from($request->validated('status')),
         );
