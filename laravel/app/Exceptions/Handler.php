@@ -38,7 +38,7 @@ class Handler extends ExceptionHandler
 
         $this->renderable(function (AuthorizationException $e, $request) {
             return response()->json([
-                'message' => transMessage('AuthorizationException')
+                'message' => 'Unauthorized'
             ], Response::HTTP_BAD_REQUEST);
         });
 
@@ -50,19 +50,47 @@ class Handler extends ExceptionHandler
     }
 
     /**
+     * Render an exception into an HTTP response.
+     */
+    public function render($request, Throwable $e)
+    {
+        // Отправляем ошибку в Telegram ПЕРЕД обработкой
+        error_log("Handler::render() вызван для: " . get_class($e));
+        
+        if (!$this->isIgnoredException($e)) {
+            try {
+                $this->sendToTelegram($e);
+                error_log("render() sendToTelegram успешен");
+            } catch (Throwable $telegramException) {
+                error_log("render() Ошибка sendToTelegram: " . $telegramException->getMessage());
+            }
+        }
+
+        return parent::render($request, $e);
+    }
+
+    /**
      * Report the exception to the application logs and Telegram.
      */
     public function report(Throwable $e): void
     {
-        // Отправляем критические ошибки в Telegram
-        if ($this->shouldReport($e) && !$this->isIgnoredException($e)) {
+        // Логируем для отладки (удалить позже)
+        error_log("Handler::report() вызван для: " . get_class($e) . " - " . $e->getMessage());
+        
+        // Отправляем все критические ошибки в Telegram
+        // shouldReport проверяет только исключения - для Error может вернуть false
+        // поэтому проверяем тип напрямую
+        $shouldSendToTelegram = !$this->isIgnoredException($e);
+        
+        error_log("shouldSendToTelegram: " . ($shouldSendToTelegram ? 'true' : 'false'));
+        
+        if ($shouldSendToTelegram) {
             try {
                 $this->sendToTelegram($e);
+                error_log("sendToTelegram успешен");
             } catch (Throwable $telegramException) {
-                Log::error('Ошибка при отправке в Telegram', [
-                    'original_error' => $e->getMessage(),
-                    'telegram_error' => $telegramException->getMessage(),
-                ]);
+                // Молча игнорируем ошибки Telegram отправки
+                error_log("Ошибка sendToTelegram: " . $telegramException->getMessage());
             }
         }
 
@@ -75,15 +103,23 @@ class Handler extends ExceptionHandler
     private function sendToTelegram(Throwable $e): void
     {
         // Получаем информацию об окружении
-        $environment = env('APP_ENV', 'unknown');
-        $appName = env('APP_NAME', 'Laravel App');
         $token = env('TELEGRAM_BOT_TOKEN');
         $chatId = env('CONTEXTIFY_TELEGRAM_CHAT_ID');
 
         // Проверка конфигурации
         if (empty($token) || empty($chatId)) {
+            error_log("sendToTelegram: Нет токена или chatId");
             return;
         }
+
+        $environment = env('APP_ENV', 'unknown');
+        $appName = env('APP_NAME', 'Laravel App');
+        
+        // Используем встроенные функции PHP вместо Laravel функций
+        $timestamp = date('Y-m-d H:i:s');
+        $basePath = base_path();
+        $basePathLen = strlen($basePath);
+        $filePath = substr($e->getFile(), $basePathLen);
 
         // Формируем сообщение об ошибке
         $message = sprintf(
@@ -93,13 +129,13 @@ class Handler extends ExceptionHandler
             '<b>Сообщение:</b> <code>%s</code>\n' .
             '<b>Файл:</b> <code>%s:%d</code>\n' .
             '<b>Время:</b> %s',
-            $appName,
-            $environment,
-            get_class($e),
+            htmlspecialchars($appName, ENT_QUOTES, 'UTF-8'),
+            htmlspecialchars($environment, ENT_QUOTES, 'UTF-8'),
+            htmlspecialchars(get_class($e), ENT_QUOTES, 'UTF-8'),
             htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8'),
-            str_replace(base_path(), '', $e->getFile()),
+            htmlspecialchars($filePath, ENT_QUOTES, 'UTF-8'),
             $e->getLine(),
-            now()->format('Y-m-d H:i:s')
+            $timestamp
         );
 
         // Добавляем первые несколько строк stacktrace
@@ -108,25 +144,57 @@ class Handler extends ExceptionHandler
             $message .= "\n\n<b>Стек вызовов:</b>\n<pre>" . htmlspecialchars($trace, ENT_QUOTES, 'UTF-8') . "</pre>";
         }
 
+        error_log("sendToTelegram: Готово к отправке сообщения: " . strlen($message) . " символов");
+        
         // Отправляем через Telegram Bot API
+        $this->sendViaTelegram($token, $chatId, $message);
+    }
+
+    /**
+     * Отправить сообщение через Telegram Bot API
+     */
+    private function sendViaTelegram(string $token, string $chatId, string $message): void
+    {
         $url = "https://api.telegram.org/bot{$token}/sendMessage";
-        $data = [
+        $payload = [
             'chat_id' => (int) $chatId,
             'text' => $message,
             'parse_mode' => 'HTML',
         ];
+        
+        $data = json_encode($payload);
+        
+        if ($data === false) {
+            error_log("sendViaTelegram: JSON encode failed");
+            return;
+        }
 
-        // Используем curl без ожидания ответа
+        error_log("sendViaTelegram: Отправка на $url");
+        
+        // Используем curl для отправки
         $ch = curl_init($url);
+        if ($ch === false) {
+            error_log("sendViaTelegram: curl_init failed");
+            return;
+        }
+
         curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 3);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
-        @curl_exec($ch);
-        @curl_close($ch);
+        $response = curl_exec($ch);
+        $curlError = curl_error($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        
+        error_log("sendViaTelegram: HTTP Code: $httpCode, Response: " . substr($response, 0, 200));
+        if (!empty($curlError)) {
+            error_log("sendViaTelegram: Curl Error: $curlError");
+        }
     }
 
     /**
@@ -136,19 +204,21 @@ class Handler extends ExceptionHandler
     {
         $trace = array_slice($e->getTrace(), 0, 3); // Только первые 3 уровня
         $output = '';
+        $basePathLen = strlen(base_path() ?? '');
 
         foreach ($trace as $index => $frame) {
-            $file = str_replace(base_path(), '', $frame['file'] ?? 'unknown');
+            $frameFile = $frame['file'] ?? 'unknown';
+            $file = $basePathLen > 0 ? substr($frameFile, $basePathLen) : $frameFile;
             $line = $frame['line'] ?? 0;
             $function = $frame['function'] ?? 'unknown';
             $class = $frame['class'] ?? '';
 
             $output .= sprintf("#%d %s:%d %s%s()\n", 
                 $index,
-                $file,
+                htmlspecialchars($file, ENT_QUOTES, 'UTF-8'),
                 $line,
-                $class ? $class . '::' : '',
-                $function
+                $class ? htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . '::' : '',
+                htmlspecialchars($function, ENT_QUOTES, 'UTF-8')
             );
         }
 

@@ -85,16 +85,8 @@ final class ProductService
     }
 
 
-    public function deleteProduct(Product $product): JsonResponse
+    public function deleteProduct(Product $product): bool
     {
-        if ($product->delete()) {
-            return response()->json([
-                'message' => __('messages.deleted'),
-            ], Response::HTTP_OK);
-        }
-
-        return response()->json([
-            'message' => __('messages.not_deleted'),
-        ], Response::HTTP_BAD_REQUEST);
+        return $product->delete();
     }
 }
