@@ -15,10 +15,7 @@ final class SendNotifyTelegramAdapter implements TelegramInterface
 
             // Проверка конфигурации
             if (empty($token) || empty($chatId)) {
-                \Log::warning('Telegram не настроен: отсутствует токен или Chat ID', [
-                    'has_token' => !empty($token),
-                    'has_chat_id' => !empty($chatId),
-                ]);
+                // Telegram isn't configured — silently skip
                 return;
             }
 
@@ -52,26 +49,10 @@ final class SendNotifyTelegramAdapter implements TelegramInterface
             $curlError = curl_error($ch);
             curl_close($ch);
 
-            // Логируем результат
-            if ($httpCode !== 200) {
-                \Log::warning('Telegram API вернул ошибку', [
-                    'http_code' => $httpCode,
-                    'response' => $response,
-                    'curl_error' => $curlError,
-                    'message_length' => strlen($text),
-                ]);
-            } else {
-                \Log::debug('Сообщение успешно отправлено в Telegram');
-            }
+            // silent: do not log result
 
         } catch (\Throwable $e) {
-            // Логируем ошибку, но не прерываем запрос
-            \Illuminate\Support\Facades\Log::error('Ошибка отправки в Telegram', [
-                'error_class' => get_class($e),
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]);
+            // swallow exceptions — do not log
         }
     }
 
