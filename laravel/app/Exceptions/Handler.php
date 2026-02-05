@@ -3,11 +3,10 @@ declare(strict_types=1);
 
 namespace App\Exceptions;
 
-use App\Exceptions\Product\ProductNotFoundException;
-use Illuminate\Auth\Access\AuthorizationException;
+use App\Jobs\SendTelegramErrorJob;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Throwable;
+
 
 class Handler extends ExceptionHandler
 {
@@ -27,22 +26,21 @@ class Handler extends ExceptionHandler
      */
     public function register(): void
     {
-        $this->renderable(function (NotFoundHttpException $e, $request) {
-            return response()->json([
-                'message' => __('messages.not_deleted')
-            ], Response::HTTP_NOT_FOUND);
-        });
+    }
 
-        $this->renderable(function (AuthorizationException $e, $request) {
-            return response()->json([
-                'message' => transMessage('AuthorizationException')
-            ], Response::HTTP_BAD_REQUEST);
-        });
+    public function report(Throwable $e): void
+    {
+        parent::report($e);
 
-        $this->renderable(function (ProductNotFoundException $e, $request) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ], Response::HTTP_BAD_REQUEST);
-        });
+        SendTelegramErrorJob::dispatch(
+            '🔥 Ошибка в приложении',
+            [
+                'exception' => get_class($e),
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'url' => request()?->fullUrl(),
+            ]
+        );
     }
 }

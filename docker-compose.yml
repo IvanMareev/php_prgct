@@ -59,6 +59,7 @@ services:
     volumes:
       - ./pgadmin/servers.json:/pgadmin4/servers.json
     depends_on:
+      - redis
       - db
     networks:
       - app-network
@@ -69,6 +70,7 @@ services:
     restart: always
     ports:
       - "6379:6379"
+
     networks:
       - app-network
 
