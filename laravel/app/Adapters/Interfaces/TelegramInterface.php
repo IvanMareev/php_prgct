@@ -8,6 +8,7 @@ namespace App\Adapters\Interfaces;
 interface TelegramInterface
 {
     public function telegram_log(string $message, array $context = []): void;
-
     public function notify_telegram(string $message, array $context = []): void;
+
+    public function notify_exception(\Throwable $e): void;
 }
