@@ -3,122 +3,120 @@
 declare(strict_types=1);
 
 namespace App\Adapters;
+
 use App\Adapters\Interfaces\TelegramInterface;
+use Illuminate\Support\Facades\Http;
+use JsonException;
+use Throwable;
 
 final class SendNotifyTelegramAdapter implements TelegramInterface
 {
+    private const TRACE_LIMIT = 3;
+
     public function telegram_log(string $message, array $context = []): void
     {
-        try {
-            $token = env('TELEGRAM_BOT_TOKEN');
-            $chatId = env('CONTEXTIFY_TELEGRAM_CHAT_ID');
+        $token = env('TELEGRAM_BOT_TOKEN');
+        $chatId = env('CONTEXTIFY_TELEGRAM_CHAT_ID');
 
-            // Проверка конфигурации
-            if (empty($token) || empty($chatId)) {
-                // Telegram isn't configured — silently skip
-                return;
-            }
-
-            // Формируем текст сообщения
-            $text = $message;
-            if (!empty($context)) {
-                $text .= "\n\n" . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-            }
-
-            // Отправляем напрямую через Telegram Bot API
-            $url = "https://api.telegram.org/bot{$token}/sendMessage";
-
-            $data = [
-                'chat_id' => (int) $chatId,
-                'text' => $text,
-                'parse_mode' => 'HTML',
-            ];
-
-            // Используем curl для отправки
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $curlError = curl_error($ch);
-            curl_close($ch);
-
-            // silent: do not log result
-
-        } catch (\Throwable $e) {
-            // swallow exceptions — do not log
+        if (!$token || !$chatId) {
+            return;
         }
+
+        if ($context !== []) {
+            $message .= "<pre>" . $this->escape(
+                    json_encode($context, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+                ) . '</pre>';
+        }
+
+        Http::timeout(5)
+            ->connectTimeout(2)
+            ->post("https://api.telegram.org/bot{$token}/sendMessage", [
+                'chat_id' => (int)$chatId,
+                'text' => $message,
+                'parse_mode' => 'HTML',
+            ]);
     }
 
+    /**
+     * @throws JsonException
+     */
     public function notify_telegram(string $message, array $context = []): void
     {
-        self::telegram_log($message, $context);
+        $this->telegram_log($message, $context);
     }
 
-    public function notify_exception(\Throwable $e): void
+    /**
+     * @throws JsonException
+     */
+    public function notify_exception(Throwable $e): void
     {
-        $environment = env('APP_ENV', 'unknown');
-        $appName = env('APP_NAME', 'Laravel App');
-
-        $timestamp = date('Y-m-d H:i:s');
-        $basePath = base_path();
-        $basePathLen = strlen($basePath);
-        $filePath = $e->getFile() ? substr($e->getFile(), $basePathLen) : 'unknown';
-
-        $message = sprintf(
-            '<b>❌ Критическая ошибка</b>\n\n' .
-            '<b>Приложение:</b> %s (%s)\n' .
-            '<b>Тип:</b> <code>%s</code>\n' .
-            '<b>Сообщение:</b> <code>%s</code>\n' .
-            '<b>Файл:</b> <code>%s:%d</code>\n' .
-            '<b>Время:</b> %s',
-            htmlspecialchars($appName, ENT_QUOTES, 'UTF-8'),
-            htmlspecialchars($environment, ENT_QUOTES, 'UTF-8'),
-            htmlspecialchars(get_class($e), ENT_QUOTES, 'UTF-8'),
-            htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8'),
-            htmlspecialchars($filePath, ENT_QUOTES, 'UTF-8'),
-            $e->getLine(),
-            $timestamp
+        $this->telegram_log(
+            $this->formatExceptionMessage($e)
         );
-
-        $trace = $this->getRelevantStackTrace($e);
-        if (! empty($trace)) {
-            $message .= "\n\n<b>Стек вызовов:</b>\n<pre>" . htmlspecialchars($trace, ENT_QUOTES, 'UTF-8') . "</pre>";
-        }
-
-        // use existing telegram_log to send
-        $this->telegram_log($message, []);
     }
 
-    private function getRelevantStackTrace(\Throwable $e): string
+    private function formatExceptionMessage(Throwable $e): string
     {
-        $trace = array_slice($e->getTrace(), 0, 3);
-        $output = '';
-        $basePathLen = strlen(base_path() ?? '');
+        $header = '<b>❌ Критическая ошибка</b>';
 
-        foreach ($trace as $index => $frame) {
-            $frameFile = $frame['file'] ?? 'unknown';
-            $file = $basePathLen > 0 ? substr($frameFile, $basePathLen) : $frameFile;
-            $line = $frame['line'] ?? 0;
-            $function = $frame['function'] ?? 'unknown';
-            $class = $frame['class'] ?? '';
+        $meta = [
+            'Приложение' => sprintf(
+                '%s (%s)',
+                env('APP_NAME', 'Laravel App'),
+                env('APP_ENV', 'unknown')
+            ),
+            'Тип' => get_class($e),
+            'Сообщение' => $e->getMessage(),
+            'Файл' => $this->relativePath($e->getFile()) . ':' . $e->getLine(),
+            'Время' => now()->format('Y-m-d H:i:s'),
+        ];
 
-            $output .= sprintf(
-                "#%d %s:%d %s%s()\n",
-                $index,
-                htmlspecialchars($file, ENT_QUOTES, 'UTF-8'),
-                $line,
-                $class ? htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . '::' : '',
-                htmlspecialchars($function, ENT_QUOTES, 'UTF-8')
-            );
+        $body = collect($meta)
+            ->map(fn($value, $key) => sprintf('<b>%s:</b> <code>%s</code>', $key, $this->escape($value))
+            )
+            ->implode("\n");
+
+        $trace = $this->formatTrace($e);
+
+        return trim(
+            $header . "\n\n" .
+            $body .
+            ($trace ? "\n\n<b>Стек вызовов:</b>\n<pre>{$trace}</pre>" : '')
+        );
+    }
+
+    private function formatTrace(Throwable $e): string
+    {
+        return collect(array_slice($e->getTrace(), 0, self::TRACE_LIMIT))
+            ->map(function (array $frame, int $i) {
+                return sprintf(
+                    '#%d %s:%d %s%s()',
+                    $i,
+                    $this->relativePath($frame['file'] ?? 'unknown'),
+                    $frame['line'] ?? 0,
+                    $frame['class'] ?? '',
+                    $frame['function'] ?? 'unknown'
+                );
+            })
+            ->map($this->escape(...))
+            ->implode("\n");
+    }
+
+    private function escape(string $value): string
+    {
+        return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+    }
+
+    private function relativePath(?string $path): string
+    {
+        if (!$path) {
+            return 'unknown';
         }
 
-        return trim($output);
+        $base = base_path();
+
+        return str_starts_with($path, $base)
+            ? substr($path, strlen($base))
+            : $path;
     }
 }

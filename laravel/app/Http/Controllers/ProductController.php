@@ -32,7 +32,7 @@ class ProductController extends Controller
         $this->telegramAdapter->telegram_log('запрос списка опубликованных товаров');
 
         return MinifyProductResource::collection(
-            $this->productService->published()
+            $this->productService->publishфed()
         );
     }
 
