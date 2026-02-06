@@ -56,13 +56,8 @@ class Handler extends ExceptionHandler
         $isIgnored = $this->isIgnoredException($e);
 
         if (! $isIgnored) {
-            try {
-                /** @var SendNotifyTelegramAdapter $adapter */
-                $adapter = app(SendNotifyTelegramAdapter::class);
-                $adapter->notify_exception($e);
-            } catch (Throwable $_) {
-                // silently ignore adapter errors
-            }
+            $adapter = app(SendNotifyTelegramAdapter::class);
+            $adapter->notify_exception($e);
         }
 
         return parent::render($request, $e);
@@ -76,24 +71,7 @@ class Handler extends ExceptionHandler
         parent::report($e);
     }
 
-    /**
-     * Отправить ошибку в Telegram
-     */
-    // sendExceptionViaAdapter removed; adapter handles exception formatting and sending
 
-    /**
-     * Отправить сообщение через Telegram Bot API
-     */
-    // sendViaTelegram removed: sending is handled by adapter
-
-    /**
-     * Получить релевантные строки стека вызовов
-     */
-    // stack trace helper moved to adapter
-
-    /**
-     * Проверить, является ли исключение игнорируемым для Telegram
-     */
     private function isIgnoredException(Throwable $e): bool
     {
         // Не отправляем 404 и другие HTTP исключения в Telegram
