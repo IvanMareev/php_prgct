@@ -13,12 +13,12 @@ class DebugTelegramLogger
     public static function log(string $message, array $context = []): void
     {
         $timestamp = date('Y-m-d H:i:s');
-        $contextStr = !empty($context) ? ' | ' . json_encode($context, JSON_UNESCAPED_UNICODE) : '';
+        $contextStr = !empty($context) ? ' | ' . json_encode($context, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) : '';
         $logMessage = "[$timestamp] $message$contextStr\n";
-        
+
         // Пишем в файл логов
         @error_log($logMessage, 3, self::$logFile);
-        
+
         // Также выводим в стандартный лог PHP
         @error_log($message . $contextStr);
     }

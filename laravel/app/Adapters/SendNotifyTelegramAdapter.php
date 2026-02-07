@@ -34,7 +34,7 @@ final class SendNotifyTelegramAdapter implements TelegramInterface
 
         Http::timeout(5)
             ->connectTimeout(2)
-            ->post("https://api.telegram.org/bot{$token}/sendMessage", [
+            ->post("https://api.telegram.org/bot$token/sendMessage", [
                 'chat_id' => (int)$chatId,
                 'text' => $message,
                 'parse_mode' => 'HTML',
@@ -85,7 +85,7 @@ final class SendNotifyTelegramAdapter implements TelegramInterface
         return trim(
             $header . "\n\n" .
             $body .
-            ($trace ? "\n\n<b>Стек вызовов:</b>\n<pre>{$trace}</pre>" : '')
+            ($trace ? "\n\n<b>Стек вызовов:</b>\n<pre>$trace</pre>" : '')
         );
     }
 
