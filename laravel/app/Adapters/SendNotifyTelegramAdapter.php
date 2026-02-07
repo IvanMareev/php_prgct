@@ -13,10 +13,14 @@ final class SendNotifyTelegramAdapter implements TelegramInterface
 {
     private const TRACE_LIMIT = 3;
 
+    /**
+     * @throws JsonException
+     */
     public function telegram_log(string $message, array $context = []): void
     {
-        $token = env('TELEGRAM_BOT_TOKEN');
-        $chatId = env('CONTEXTIFY_TELEGRAM_CHAT_ID');
+        $token  = config('telegram.bot_token');
+        $chatId = config('telegram.chat_id');
+
 
         if (!$token || !$chatId) {
             return;
@@ -62,8 +66,8 @@ final class SendNotifyTelegramAdapter implements TelegramInterface
         $meta = [
             'Приложение' => sprintf(
                 '%s (%s)',
-                env('APP_NAME', 'Laravel App'),
-                env('APP_ENV', 'unknown')
+                config('app.name', 'Laravel App'),
+                config('app.env', 'unknown')
             ),
             'Тип' => get_class($e),
             'Сообщение' => $e->getMessage(),
