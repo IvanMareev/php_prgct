@@ -1,3 +1,4 @@
+version: '3'
 services:
   db:
     image: postgres:16
@@ -12,7 +13,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
-      - app-network
+      - app-network  # исправлено: указываем правильное имя сети как строку
 
   app:
     user: "${UID}:${GID}"
@@ -23,7 +24,7 @@ services:
     volumes:
       - ./laravel:/var/www
     networks:
-      - app-network
+      - app-network  # указываем сеть для app
 
   nginx:
     image: nginx:latest
@@ -36,7 +37,7 @@ services:
     depends_on:
       - app
     networks:
-      - app-network
+      - app-network  # указываем сеть для nginx
 
   pgadmin:
     image: dpage/pgadmin4
@@ -61,7 +62,7 @@ services:
     depends_on:
       - db
     networks:
-      - app-network
+      - app-network  # указываем сеть для pgadmin
 
   redis:
     image: redis:alpine
@@ -70,7 +71,7 @@ services:
     ports:
       - "6379:6379"
     networks:
-      - app-network
+      - app-network  # указываем сеть для redis
 
 volumes:
   postgres-data:

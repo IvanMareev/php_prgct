@@ -17,13 +17,10 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = $request->user();
-        
-        if (!$user || !$user->is_admin()) {
-            return response()->json([
-                'message' => 'forbidden',
-            ], 403);
+        if (!auth()->check() || !auth()->user()->is_admin) {
+            abort(403);
         }
+
         return $next($request);
     }
 }
