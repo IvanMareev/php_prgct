@@ -2,7 +2,6 @@
 
 namespace Tests\Unit;
 
-use App\Http\Requests\Post\PostRequest;
 use App\Http\Requests\Post\PostUpdatePostRequect;
 use App\Models\Post;
 use App\Models\User;
@@ -23,11 +22,11 @@ class PostServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->postService = new PostService();
         $this->adminUser = User::factory()->create(['is_admin' => true]);
         $this->post = Post::factory()->create(['user_id' => $this->adminUser->id]);
-        
+
         Storage::fake('public');
     }
 
@@ -71,9 +70,9 @@ class PostServiceTest extends TestCase
     public function it_handles_thumbnail_upload_during_update()
     {
         Storage::fake('public');
-        
+
         $thumbnail = UploadedFile::fake()->image('thumbnail.jpg');
-        
+
         $requestMock = $this->createMock(PostUpdatePostRequect::class);
         $requestMock->expects($this->once())
             ->method('validated')
@@ -91,7 +90,7 @@ class PostServiceTest extends TestCase
     public function it_can_update_post_without_changes()
     {
         $originalTitle = $this->post->title;
-        
+
         $requestMock = $this->createMock(PostUpdatePostRequect::class);
         $requestMock->expects($this->once())
             ->method('validated')

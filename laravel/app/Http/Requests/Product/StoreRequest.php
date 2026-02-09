@@ -4,12 +4,10 @@ declare(strict_types=1);
 namespace App\Http\Requests\Product;
 
 use App\Enums\ProductStatus;
+use App\Http\Requests\ApiRequest;
 use App\Services\Product\DTO\CreateProductData;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
-use Illuminate\Validation\ValidationException;
-use App\Http\Requests\ApiRequest;
 
 class StoreRequest extends ApiRequest
 {

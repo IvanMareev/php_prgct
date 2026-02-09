@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\PostStatus;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\User;
@@ -10,7 +11,6 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
-use App\Enums\PostStatus;
 use Tests\TestCase;
 
 class PostApiTest extends TestCase
@@ -330,7 +330,7 @@ class PostApiTest extends TestCase
         Sanctum::actingAs($this->regularUser);
 
         $commentText = 'Отличный пост!';
-        
+
         $response = $this->postJson(
             route('posts.comment.store', $this->publishedPost),
             ['text' => $commentText]
@@ -448,7 +448,7 @@ class PostApiTest extends TestCase
             'views' => 100,
             'created_at' => now()->subDay()
         ]);
-        
+
         Post::factory()->create([
             'status' => PostStatus::Published,
             'views' => 50,
@@ -461,7 +461,7 @@ class PostApiTest extends TestCase
         ]));
 
         $response->assertStatus(200);
-        
+
         $posts = $response->json('data');
         $this->assertGreaterThanOrEqual(
             $posts[1]['views'] ?? 0,
