@@ -7,13 +7,16 @@ use App\Adapters\SendNotifyTelegramAdapter;
 use App\Http\Resources\Product\ProductResource;
 use App\Repositories\EloquentPostRepository;
 use App\Repositories\PostRepositoryInterface;
-use App\Repositories\Product\ProductRepositoryInterface;
 use App\Repositories\Product\EloquentProductRepository;
-use Illuminate\Support\ServiceProvider;
-use App\Services\UploadFiles\FileUploadService;
-use App\Repositories\User\UserRepositoryInterface;
+use App\Repositories\Product\ProductRepositoryInterface;
 use App\Repositories\User\EloquentUserRepository;
-
+use App\Repositories\User\UserRepositoryInterface;
+use App\Services\Telegram\Formatter\TelegramMessageFormatter;
+use App\Services\Telegram\Formatter\TelegramMessageFormatterInterface;
+use App\Services\Telegram\UrlGenerator\TelegramUrlGenerator;
+use App\Services\Telegram\UrlGenerator\TelegramUrlGeneratorInterface;
+use App\Services\UploadFiles\FileUploadService;
+use Illuminate\Support\ServiceProvider;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -26,10 +29,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(FileUploadService::class, function ($app) {
             return new FileUploadService();
         });
-        
+
         // Регистрируем адаптер Telegram как singleton
         $this->app->singleton(SendNotifyTelegramAdapter::class);
-        
+
         $this->app->bind(
             PostRepositoryInterface::class,
             EloquentPostRepository::class
@@ -45,7 +48,18 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             TelegramInterface::class,
             SendNotifyTelegramAdapter::class
-        );    
+        );
+
+        $this->app->bind(
+            TelegramUrlGeneratorInterface::class,
+            fn() => new TelegramUrlGenerator(
+                config('telegram.base_url', 'https://api.telegram.org')
+            ));
+
+        $this->app->bind(
+            TelegramMessageFormatterInterface::class,
+            TelegramMessageFormatter::class
+        );
     }
 
     /**

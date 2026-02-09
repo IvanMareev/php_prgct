@@ -127,6 +127,8 @@
       <excludeFolder url="file://$MODULE_DIR$/laravel/vendor/spatie/laravel-package-tools" />
       <excludeFolder url="file://$MODULE_DIR$/laravel/vendor/spatie/php-structure-discoverer" />
       <excludeFolder url="file://$MODULE_DIR$/laravel/vendor/webmozart/assert" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel/storage/app" />
+      <excludeFolder url="file://$MODULE_DIR$/laravel/storage/framework" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
