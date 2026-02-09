@@ -77,7 +77,7 @@ class Product extends Model
 
     public function imagesList(): array
     {
-        return $this->images->map(fn ($image) => $image->url)->toArray();
+        return $this->images->map(fn($image) => $image->url)->toArray();
     }
 
     public function rating(): int|float

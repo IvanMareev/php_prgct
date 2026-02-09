@@ -21,7 +21,7 @@ class DraftMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        /** @var Product $product*/
+        /** @var Product $product */
         $product = $request->route('product');
 
         if ($product->status === ProductStatus::DRAFT) {

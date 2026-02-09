@@ -19,7 +19,7 @@ class PostStatusMiddleware
 
         $post = $request->route('post');
 
-        if($post->status !== PostStatus::Published) {
+        if ($post->status !== PostStatus::Published) {
             return response()->json([
                 'message' => 'Post is not published',
             ], 404);

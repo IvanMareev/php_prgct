@@ -22,7 +22,7 @@ class StoreRequest extends ApiRequest
     {
         return [
             'name' => ['required', 'string'],
-            'description' => [ 'nullable', 'string'],
+            'description' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:1', 'max:10000000'],
             'count' => ['required', 'integer', 'min:1', 'max:100000'],
             'status' => ['required', new Enum(ProductStatus::class)],

@@ -22,12 +22,12 @@ class PostMiddlewareTest extends TestCase
 
         $this->adminUser = User::factory()->create(['is_admin' => true]);
         $this->regularUser = User::factory()->create(['is_admin' => false]);
-        
+
         $this->publishedPost = Post::factory()->create([
             'is_published' => true,
             'published_at' => now()->subDay()
         ]);
-        
+
         $this->draftPost = Post::factory()->create([
             'is_published' => false,
             'published_at' => null

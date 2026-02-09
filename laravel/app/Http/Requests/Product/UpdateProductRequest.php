@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace App\Http\Requests\Product;
 
 use App\Http\Requests\ApiRequest;
@@ -17,7 +18,6 @@ class UpdateProductRequest extends ApiRequest
             'status' => ['sometimes'],
         ];
     }
-
 
 
 }

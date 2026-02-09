@@ -48,8 +48,8 @@ class ProductController extends Controller
         $dto = new CreateProductData(
             name: $request->validated('name'),
             description: $request->validated('description'),
-            price: (float) $request->validated('price'),
-            count: (int) $request->validated('count'),
+            price: (float)$request->validated('price'),
+            count: (int)$request->validated('count'),
             images: $images,
             status: ProductStatus::from($request->validated('status')),
         );
@@ -78,6 +78,7 @@ class ProductController extends Controller
 
         return new ProductResource($product);
     }
+
     public function destroy(Product $product): JsonResponse
     {
         if ($this->productService->deleteProduct($product)) {

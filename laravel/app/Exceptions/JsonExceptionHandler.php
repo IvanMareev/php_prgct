@@ -25,6 +25,7 @@ class JsonExceptionHandler extends ExceptionHandler
 
         return parent::render($request, $e);
     }
+
     protected function handleJsonException(Throwable $e): JsonResponse
     {
         $statusCode = $this->getStatusCode($e);
@@ -110,7 +111,7 @@ class JsonExceptionHandler extends ExceptionHandler
     protected function isApiRequest(Request $request): bool
     {
         return $request->is('api/*') ||
-               $request->is('*/api/*') ||
-               $request->header('Accept') === 'application/json';
+            $request->is('*/api/*') ||
+            $request->header('Accept') === 'application/json';
     }
 }

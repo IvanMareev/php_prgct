@@ -17,6 +17,7 @@ use Illuminate\Support\Arr;
 final class ProductService
 {
     private Product $product;
+
     public function __construct(
         private readonly FileUploadService         $fileUploadService,
         private readonly EloquentProductRepository $eloquentProductRepository)

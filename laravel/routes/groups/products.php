@@ -6,9 +6,6 @@ use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
 
-
-
-
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('products/{product}/reviews', [ProductController::class, 'review']);
     Route::apiResource('products', ProductController::class)

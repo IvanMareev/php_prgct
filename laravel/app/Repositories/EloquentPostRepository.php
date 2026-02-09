@@ -42,7 +42,7 @@ class EloquentPostRepository implements PostRepositoryInterface
         return null;
     }
 
-    public function createComment(Post $post,int $user_id, string $text): Post
+    public function createComment(Post $post, int $user_id, string $text): Post
     {
         return $post->comments()->create([
             'user_id' => $user_id,

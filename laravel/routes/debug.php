@@ -18,17 +18,17 @@ Route::get('/test-null-error', function () {
 // Роут для просмотра логов отладки
 Route::get('/telegram-debug-logs', function () {
     $logFile = storage_path('logs/telegram-debug.log');
-    
+
     if (!file_exists($logFile)) {
         return response()->json([
             'message' => 'Log file not found',
             'path' => $logFile,
         ], 404);
     }
-    
+
     $logs = file_get_contents($logFile);
     $lines = explode("\n", $logs);
-    
+
     return response()->json([
         'log_file' => $logFile,
         'total_lines' => count($lines),
@@ -41,7 +41,7 @@ Route::get('/telegram-debug-logs', function () {
 Route::post('/telegram-debug-clear', function () {
     DebugTelegramLogger::clearLog();
     DebugTelegramLogger::log("=== LOGS CLEARED ===");
-    
+
     return response()->json([
         'message' => 'Logs cleared',
         'timestamp' => date('Y-m-d H:i:s'),
@@ -51,7 +51,7 @@ Route::post('/telegram-debug-clear', function () {
 // Роут для проверки конфигурации
 Route::get('/telegram-config-check', function () {
     DebugTelegramLogger::logConfig();
-    
+
     return response()->json([
         'message' => 'Configuration check logged to telegram-debug.log',
         'token_exists' => !empty(env('TELEGRAM_BOT_TOKEN')),
@@ -65,14 +65,14 @@ Route::get('/telegram-config-check', function () {
 // Роут для просмотра последних 20 уникальных ошибок из логов
 Route::get('/telegram-debug-summary', function () {
     $logFile = storage_path('logs/telegram-debug.log');
-    
+
     if (!file_exists($logFile)) {
         return response()->json(['message' => 'Log file not found'], 404);
     }
-    
+
     $logs = file_get_contents($logFile);
     $lines = explode("\n", $logs);
-    
+
     // Найдем все "EXCEPTION AT STAGE" строки
     $exceptions = [];
     foreach ($lines as $line) {
@@ -80,7 +80,7 @@ Route::get('/telegram-debug-summary', function () {
             $exceptions[] = $line;
         }
     }
-    
+
     // Найдем все SUCCESS строки
     $successes = [];
     foreach ($lines as $line) {
@@ -88,7 +88,7 @@ Route::get('/telegram-debug-summary', function () {
             $successes[] = $line;
         }
     }
-    
+
     // Найдем все ERROR строки
     $errors = [];
     foreach ($lines as $line) {
@@ -96,7 +96,7 @@ Route::get('/telegram-debug-summary', function () {
             $errors[] = $line;
         }
     }
-    
+
     return response()->json([
         'total_lines' => count($lines),
         'exceptions_count' => count($exceptions),

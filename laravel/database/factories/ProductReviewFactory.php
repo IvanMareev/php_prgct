@@ -14,7 +14,7 @@ class ProductReviewFactory extends Factory
     {
         return [
             'text' => fake()->text(100),
-            'rating' => fake()->numberBetween(1,5),
+            'rating' => fake()->numberBetween(1, 5),
         ];
     }
 }

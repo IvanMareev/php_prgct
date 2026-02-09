@@ -14,9 +14,11 @@ final class UserService
 
     public function __construct(
         private readonly EloquentUserRepository $userRepository,
-    ) {
+    )
+    {
     }
-    public function getAccessToken(CreateTokenData $data):string|false
+
+    public function getAccessToken(CreateTokenData $data): string|false
     {
         $user = $this->userRepository->getUser($data->email);
         if (!Hash::check($data->password, $user->password)) {

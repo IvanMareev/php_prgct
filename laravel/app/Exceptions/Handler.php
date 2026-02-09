@@ -55,7 +55,7 @@ class Handler extends ExceptionHandler
     {
         $isIgnored = $this->isIgnoredException($e);
 
-        if (! $isIgnored) {
+        if (!$isIgnored) {
             $adapter = app(SendNotifyTelegramAdapter::class);
             $adapter->notify_exception($e);
         }

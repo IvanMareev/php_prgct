@@ -16,9 +16,10 @@ final class PostService
 {
 
     public function __construct(
-        private readonly FileUploadService $fileUploadService,
+        private readonly FileUploadService       $fileUploadService,
         private readonly PostRepositoryInterface $postRepository
-    ) {
+    )
+    {
     }
 
     public function getAllPosts($fields = ['id', 'title', 'thumbnail', 'views', 'created_at']): Collection|array

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services\Product\DTO;
 
 final class UpdateProductData

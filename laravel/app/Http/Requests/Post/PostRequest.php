@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace App\Http\Requests\Post;
 
 use App\Enums\PostStatus;
@@ -17,12 +18,12 @@ class PostRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'title'       => ['required', 'string', 'max:150'],
-            'body'        => ['required', 'string'],
-            'thumbnail'   => ['nullable', 'image', 'max:2048'],
-            'status'      => ['required', new Enum(PostStatus::class)],
+            'title' => ['required', 'string', 'max:150'],
+            'body' => ['required', 'string'],
+            'thumbnail' => ['nullable', 'image', 'max:2048'],
+            'status' => ['required', new Enum(PostStatus::class)],
             'category_id' => ['required', 'integer', 'exists:categories,id'],
-            'views'       => ['nullable', 'integer', 'min:0'],
+            'views' => ['nullable', 'integer', 'min:0'],
         ];
     }
 }
