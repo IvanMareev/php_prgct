@@ -60,7 +60,7 @@ final class TelegramMessageFormatter implements TelegramMessageFormatterInterfac
         return $this->limit($message);
     }
 
-    private function formatTrace(Throwable $error): string
+    public function formatTrace(Throwable $error): string
     {
         return collect(array_slice($error->getTrace(), 0, self::TRACE_LIMIT))
             ->map(fn(array $frame, int $i) => sprintf(
