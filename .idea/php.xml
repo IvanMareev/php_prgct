@@ -143,6 +143,10 @@
       <path value="$PROJECT_DIR$/laravel/vendor/spatie/laravel-package-tools" />
       <path value="$PROJECT_DIR$/laravel/vendor/spatie/php-structure-discoverer" />
       <path value="$PROJECT_DIR$/laravel/vendor/spatie/laravel-data" />
+      <path value="$PROJECT_DIR$/vendor/phpstan/phpstan" />
+      <path value="$PROJECT_DIR$/vendor/composer" />
+      <path value="$PROJECT_DIR$/laravel/vendor/faustoff/laravel-contextify" />
+      <path value="$PROJECT_DIR$/laravel/vendor/predis/predis" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.1" />
