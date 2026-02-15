@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\User;
 
-use App\Repositories\User\EloquentUserRepository;
+use App\Repositories\User\CashedUserRepository;
 use App\Services\User\DTO\CreateTokenData;
 use Illuminate\Support\Facades\Hash;
 
@@ -13,7 +13,7 @@ final class UserService
 {
 
     public function __construct(
-        private readonly EloquentUserRepository $userRepository,
+        private readonly CashedUserRepository $userRepository,
     )
     {
     }

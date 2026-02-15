@@ -7,6 +7,7 @@ use App\Adapters\SendNotifyTelegramAdapter;
 use App\Http\Resources\Product\ProductResource;
 use App\Repositories\EloquentPostRepository;
 use App\Repositories\PostRepositoryInterface;
+use App\Repositories\Product\CachedProductRepository;
 use App\Repositories\Product\EloquentProductRepository;
 use App\Repositories\Product\ProductRepositoryInterface;
 use App\Repositories\User\EloquentUserRepository;
@@ -37,10 +38,12 @@ class AppServiceProvider extends ServiceProvider
             PostRepositoryInterface::class,
             EloquentPostRepository::class
         );
-        $this->app->bind(
-            ProductRepositoryInterface::class,
-            EloquentProductRepository::class
-        );
+        $this->app->bind(ProductRepositoryInterface::class, function ($app) {
+            return new CachedProductRepository(
+                $app->make(EloquentProductRepository::class)
+            );
+        });
+
         $this->app->bind(
             UserRepositoryInterface::class,
             EloquentUserRepository::class

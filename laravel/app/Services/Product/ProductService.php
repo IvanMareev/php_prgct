@@ -7,7 +7,7 @@ use App\Http\Requests\Product\StoreReviewRequest;
 use App\Models\Product;
 use App\Models\ProductReview;
 use App\Models\User;
-use App\Repositories\Product\EloquentProductRepository;
+use App\Repositories\Product\CachedProductRepository;
 use App\Services\Product\DTO\CreateProductData;
 use App\Services\Product\DTO\UpdateProductData;
 use App\Services\UploadFiles\FileUploadService;
@@ -20,7 +20,7 @@ final class ProductService
 
     public function __construct(
         private readonly FileUploadService         $fileUploadService,
-        private readonly EloquentProductRepository $eloquentProductRepository)
+        private readonly CachedProductRepository $eloquentProductRepository)
     {
     }
 
