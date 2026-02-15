@@ -45,8 +45,6 @@ class CachedPostRepository implements PostRepositoryInterface
 
     public function createForUser(int $userId, array $data): ?Post
     {
-        //TODO fix it!
-        $post = $this->repository->createForUser($userId, $data);
         Cache::tags(['posts'])->flush();
         $user = User::find($userId);
         if ($user) {

@@ -5,7 +5,7 @@ namespace App\Services\Post;
 
 use App\Models\Post;
 use App\Models\User;
-use App\Repositories\PostRepositoryInterface;
+use App\Repositories\CachedPostRepository;
 use App\Services\Post\DTO\CreatePostData;
 use App\Services\Post\DTO\UpdatePostData;
 use App\Services\UploadFiles\FileUploadService;
@@ -17,7 +17,7 @@ final class PostService
 
     public function __construct(
         private readonly FileUploadService       $fileUploadService,
-        private readonly PostRepositoryInterface $postRepository
+        private readonly CachedPostRepository $postRepository
     )
     {
     }
