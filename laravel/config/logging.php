@@ -129,6 +129,15 @@ return [
             ],
         ],
 
+        'docker' => [
+        'driver' => 'monolog',
+        'handler' => \Monolog\Handler\StreamHandler::class,
+        'formatter' => \Monolog\Formatter\JsonFormatter::class,
+        'with' => [
+            'stream' => 'php://stderr',
+            ],
+        ],
+
         'null' => [
             'driver' => 'monolog',
             'handler' => NullHandler::class,

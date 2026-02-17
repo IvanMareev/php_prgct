@@ -14,3 +14,8 @@ Route::get('/test-null-error', function () {
     $user = null;
     return $user->getName(); // Ошибка: Call to a member function on null
 });
+
+Route::get('/test-log', function() {
+    Log::error('Тестовое сообщение для ELK');
+    return 'Лог записан';
+});
