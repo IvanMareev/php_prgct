@@ -19,7 +19,6 @@ use App\Services\Telegram\UrlGenerator\TelegramUrlGeneratorInterface;
 use App\Services\UploadFiles\FileUploadService;
 use Illuminate\Support\ServiceProvider;
 
-
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -28,21 +27,25 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(FileUploadService::class, function ($app) {
-            return new FileUploadService();
+            return new FileUploadService;
         });
 
-        // Регистрируем адаптер Telegram как singleton
         $this->app->singleton(SendNotifyTelegramAdapter::class);
 
         $this->app->bind(
             PostRepositoryInterface::class,
             EloquentPostRepository::class
         );
-        $this->app->bind(ProductRepositoryInterface::class, function ($app) {
-            return new CachedProductRepository(
-                $app->make(EloquentProductRepository::class)
-            );
-        });
+
+        if ($this->app->environment('testing')) {
+            $this->app->bind(ProductRepositoryInterface::class, EloquentProductRepository::class);
+        } else {
+            $this->app->bind(ProductRepositoryInterface::class, function ($app) {
+                return new CachedProductRepository(
+                    $app->make(EloquentProductRepository::class)
+                );
+            });
+        }
 
         $this->app->bind(
             UserRepositoryInterface::class,
@@ -55,7 +58,7 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->bind(
             TelegramUrlGeneratorInterface::class,
-            fn() => new TelegramUrlGenerator(
+            fn () => new TelegramUrlGenerator(
                 config('telegram.base_url', 'https://api.telegram.org')
             ));
 

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services\Product;
@@ -7,7 +8,7 @@ use App\Http\Requests\Product\StoreReviewRequest;
 use App\Models\Product;
 use App\Models\ProductReview;
 use App\Models\User;
-use App\Repositories\Product\CachedProductRepository;
+use App\Repositories\Product\ProductRepositoryInterface;
 use App\Services\Product\DTO\CreateProductData;
 use App\Services\Product\DTO\UpdateProductData;
 use App\Services\UploadFiles\FileUploadService;
@@ -16,18 +17,16 @@ use Illuminate\Support\Arr;
 
 final class ProductService
 {
-    private Product $product;
+    private $product;
 
     public function __construct(
-        private readonly FileUploadService         $fileUploadService,
-        private readonly CachedProductRepository $eloquentProductRepository)
-    {
-    }
-
+        private readonly FileUploadService $fileUploadService,
+        private readonly ProductRepositoryInterface $productRepository
+    ) {}
 
     public function published(array $fields = ['id', 'name', 'price']): Collection|array
     {
-        return $this->eloquentProductRepository->getAllPublishedProduct($fields);
+        return $this->productRepository->getAllPublishedProduct($fields);
     }
 
     public function store(CreateProductData $data, User $user): Product
@@ -42,13 +41,12 @@ final class ProductService
             );
         }
 
-        return $this->eloquentProductRepository->createProduct(
+        return $this->productRepository->createProduct(
             $user,
             $data->toArray(),
             $imagePaths
         );
     }
-
 
     public function update(UpdateProductData $data): Product
     {
@@ -63,16 +61,15 @@ final class ProductService
             );
         }
 
-        return $this->eloquentProductRepository->updateProduct($this->product, $data, $paths);
+        return $this->productRepository->updateProduct($this->product, $data, $paths);
     }
-
 
     public function setProduct(Product $product): ProductService
     {
         $this->product = $product;
+
         return $this;
     }
-
 
     public function addReview(StoreReviewRequest $request): ProductReview
     {
@@ -82,7 +79,6 @@ final class ProductService
             'rating' => $request->integer('rating'),
         ]);
     }
-
 
     public function deleteProduct(Product $product): bool
     {
