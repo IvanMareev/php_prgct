@@ -65,11 +65,6 @@ class Product extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function reviews(): HasMany
-    {
-        return $this->hasMany(ProductReview::class);
-    }
-
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class)->select(['url']);
@@ -83,5 +78,10 @@ class Product extends Model
     public function rating(): int|float
     {
         return round($this->reviews()->avg('rating'), 1);
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class);
     }
 }

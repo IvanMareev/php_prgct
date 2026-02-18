@@ -18,11 +18,6 @@ class EloquentPostRepository implements PostRepositoryInterface
         return Post::find($id);
     }
 
-    public function create(array $data): Post
-    {
-        return Post::create($data);
-    }
-
     public function update(Post $post, array $data): bool
     {
         return $post->update($data);
@@ -40,6 +35,11 @@ class EloquentPostRepository implements PostRepositoryInterface
             return $user->posts()->create($data);
         }
         return null;
+    }
+
+    public function create(array $data): Post
+    {
+        return Post::create($data);
     }
 
     public function createComment(Post $post, int $user_id, string $text): Post
