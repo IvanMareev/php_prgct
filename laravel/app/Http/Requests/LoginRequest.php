@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Requests;
@@ -7,8 +8,6 @@ use Illuminate\Contracts\Validation\ValidationRule;
 
 class LoginRequest extends ApiRequest
 {
-
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -18,7 +17,7 @@ class LoginRequest extends ApiRequest
     {
         return [
             'email' => ['required', 'email'],
-            'password' => ['required']
+            'password' => ['required'],
         ];
     }
 }

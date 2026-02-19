@@ -7,6 +7,7 @@ use App\Adapters\SendNotifyTelegramAdapter;
 use App\Http\Resources\Product\ProductResource;
 use App\Repositories\EloquentPostRepository;
 use App\Repositories\PostRepositoryInterface;
+use App\Repositories\Product\CachedProductRepository;
 use App\Repositories\Product\EloquentProductRepository;
 use App\Repositories\Product\ProductRepositoryInterface;
 use App\Repositories\User\EloquentUserRepository;
@@ -18,7 +19,6 @@ use App\Services\Telegram\UrlGenerator\TelegramUrlGeneratorInterface;
 use App\Services\UploadFiles\FileUploadService;
 use Illuminate\Support\ServiceProvider;
 
-
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -27,20 +27,26 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(FileUploadService::class, function ($app) {
-            return new FileUploadService();
+            return new FileUploadService;
         });
 
-        // Регистрируем адаптер Telegram как singleton
         $this->app->singleton(SendNotifyTelegramAdapter::class);
 
         $this->app->bind(
             PostRepositoryInterface::class,
             EloquentPostRepository::class
         );
-        $this->app->bind(
-            ProductRepositoryInterface::class,
-            EloquentProductRepository::class
-        );
+
+        if ($this->app->environment('testing')) {
+            $this->app->bind(ProductRepositoryInterface::class, EloquentProductRepository::class);
+        } else {
+            $this->app->bind(ProductRepositoryInterface::class, function ($app) {
+                return new CachedProductRepository(
+                    $app->make(EloquentProductRepository::class)
+                );
+            });
+        }
+
         $this->app->bind(
             UserRepositoryInterface::class,
             EloquentUserRepository::class
@@ -52,7 +58,7 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->bind(
             TelegramUrlGeneratorInterface::class,
-            fn() => new TelegramUrlGenerator(
+            fn () => new TelegramUrlGenerator(
                 config('telegram.base_url', 'https://api.telegram.org')
             ));
 

@@ -19,10 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class PostController extends Controller
 {
-    public function __construct(private readonly PostService $service)
-    {
-    }
-
+    public function __construct(private readonly PostService $service) {}
 
     public function index(): AnonymousResourceCollection
     {
@@ -31,42 +28,39 @@ final class PostController extends Controller
         return MinifyPostResource::collection($posts);
     }
 
-
     public function show(Post $post): PostResource
     {
         return new PostResource($post);
     }
 
-
     public function update(PostUpdatePostRequect $request, Post $post): PostResource
     {
         $validated = $request->validated();
         $dto = new UpdatePostData(
-            category_id: (int)$validated['category_id'],
+            category_id: (int) $validated['category_id'],
             title: $validated['title'],
             body: $validated['body'],
             thumbnail: $request->file('thumbnail'),
             status: $validated['status'],
-            views: (int)($validated['views'] ?? $post->views),
+            views: (int) ($validated['views'] ?? $post->views),
         );
         $UpdatedPost = $this->service->update($dto, $post);
 
         return new PostResource($UpdatedPost);
     }
 
-
     public function store(PostRequest $request): JsonResponse
     {
         $validated = $request->validated();
 
         $dto = new CreatePostData(
-            category_id: (int)$validated['category_id'],
+            category_id: (int) $validated['category_id'],
             title: $validated['title'],
             body: $validated['body'],
             thumbnail: $request->file('thumbnail'),
             status: $validated['status'],
-            views: (int)($validated['views'] ?? null),
-            user_id: (int)$request->user()->id,
+            views: (int) ($validated['views'] ?? null),
+            user_id: (int) $request->user()->id,
         );
 
         $post = $this->service->store($dto, $request->user());
@@ -78,7 +72,6 @@ final class PostController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-
     public function destroy(Post $post): JsonResponse
     {
         if ($this->service->deletePost($post)) {
@@ -88,7 +81,7 @@ final class PostController extends Controller
         }
 
         return response()->json([
-            'message' => __('messages.not_deleted')
+            'message' => __('messages.not_deleted'),
         ], Response::HTTP_BAD_REQUEST);
     }
 

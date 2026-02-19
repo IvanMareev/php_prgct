@@ -22,14 +22,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends Controller
 {
-
-    public function __construct(private readonly ProductService $productService, private readonly SendNotifyTelegramAdapter $telegramAdapter)
-    {
-    }
+    public function __construct(private readonly ProductService $productService, private readonly SendNotifyTelegramAdapter $telegramAdapter) {}
 
     public function index(): AnonymousResourceCollection
     {
-        $this->telegramAdapter->telegram_log('запрос списка опубликованных товаров');
+        //        $this->telegramAdapter->telegram_log('запрос списка опубликованных товаров');
 
         return MinifyProductResource::collection(
             $this->productService->published()
@@ -48,8 +45,8 @@ class ProductController extends Controller
         $dto = new CreateProductData(
             name: $request->validated('name'),
             description: $request->validated('description'),
-            price: (float)$request->validated('price'),
-            count: (int)$request->validated('count'),
+            price: (float) $request->validated('price'),
+            count: (int) $request->validated('count'),
             images: $images,
             status: ProductStatus::from($request->validated('status')),
         );
@@ -58,7 +55,6 @@ class ProductController extends Controller
 
         return new ProductResource($product);
     }
-
 
     public function review(StoreReviewRequest $request, Product $product): ProductReview
     {
@@ -84,11 +80,11 @@ class ProductController extends Controller
         if ($this->productService->deleteProduct($product)) {
             return response()->json([
                 'message' => __('posts.deleted'),
-            ], Response::HTTP_OK);
+            ], Response::HTTP_NO_CONTENT);
         }
 
         return response()->json([
-            'message' => __('messages.not_deleted')
+            'message' => __('messages.not_deleted'),
         ], Response::HTTP_BAD_REQUEST);
     }
 }

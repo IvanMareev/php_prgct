@@ -7,16 +7,14 @@ namespace App\Http\Controllers;
 use App\Http\Requests\LoginRequest;
 use App\Services\User\DTO\CreateTokenData;
 use App\Services\User\UserService;
+use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
-
 
 class UserController extends Controller
 {
-    public function __construct(private readonly UserService $userService)
-    {
-    }
+    public function __construct(private readonly UserService $userService) {}
 
-    public function login(LoginRequest $request): \Illuminate\Http\JsonResponse
+    public function login(LoginRequest $request): JsonResponse
     {
         $dto = new CreateTokenData(
             email: $request->validated('email'),
@@ -27,7 +25,7 @@ class UserController extends Controller
 
         if ($token === false) {
             return response()->json([
-                'message' => __('not_deleted')
+                'message' => __('not_deleted'),
             ], Response::HTTP_BAD_REQUEST);
         }
 

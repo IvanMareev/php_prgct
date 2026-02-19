@@ -2,10 +2,9 @@
 
 namespace App\Services\Post;
 
-
 use App\Models\Post;
 use App\Models\User;
-use App\Repositories\PostRepositoryInterface;
+use App\Repositories\CachedPostRepository;
 use App\Services\Post\DTO\CreatePostData;
 use App\Services\Post\DTO\UpdatePostData;
 use App\Services\UploadFiles\FileUploadService;
@@ -14,19 +13,15 @@ use Illuminate\Support\Collection;
 
 final class PostService
 {
-
     public function __construct(
-        private readonly FileUploadService       $fileUploadService,
-        private readonly PostRepositoryInterface $postRepository
-    )
-    {
-    }
+        private readonly FileUploadService $fileUploadService,
+        private readonly CachedPostRepository $postRepository
+    ) {}
 
     public function getAllPosts($fields = ['id', 'title', 'thumbnail', 'views', 'created_at']): Collection|array
     {
         return $this->postRepository->getAll($fields);
     }
-
 
     public function update(UpdatePostData $request, Post $post): Post
     {
@@ -49,16 +44,13 @@ final class PostService
         $data['thumbnail'] = $this->fileUploadService
             ->uploadFile($request->file['thumbnail'] ?? null, 'public', 'thumbnails');
 
-
         return $this->postRepository->createForUser($user->id, $data->toArray());
     }
-
 
     public function deletePost(Post $post): bool
     {
         return $this->postRepository->delete($post);
     }
-
 
     public function createComment(Post $post, Request $request): Post
     {
