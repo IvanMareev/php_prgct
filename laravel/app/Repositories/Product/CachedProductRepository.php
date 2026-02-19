@@ -13,8 +13,7 @@ class CachedProductRepository implements ProductRepositoryInterface
 {
 
     public function __construct(
-        private readonly ProductRepositoryInterface $repository
-    )
+        private readonly ProductRepositoryInterface $repository)
     {
     }
 
@@ -22,9 +21,7 @@ class CachedProductRepository implements ProductRepositoryInterface
     public function createProduct(User $user, array $data, array $imagePaths = []): Product
     {
         $product = $this->repository->createProduct($user, $data, $imagePaths);
-
         Cache::store('redis')->tags(['products'])->flush();
-
         return $product;
     }
 
