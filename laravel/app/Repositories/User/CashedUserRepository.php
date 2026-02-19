@@ -9,17 +9,14 @@ use Illuminate\Support\Facades\Cache;
 
 final class CashedUserRepository implements UserRepositoryInterface
 {
-
-    public function __construct(private readonly UserRepositoryInterface $repository)
-    {
-
-    }
+    public function __construct(private readonly UserRepositoryInterface $repository) {}
 
     public function getUser(string $email): User
     {
-        $cacheKey = 'user:' . $email;
+        $cacheKey = 'user:'.$email;
+
         return Cache::tags(['user'])->remember($cacheKey, now()->addDay(), function () use ($email) {
-            $this->repository->getUser($email);
+            return $this->repository->getUser($email);
         });
     }
 }

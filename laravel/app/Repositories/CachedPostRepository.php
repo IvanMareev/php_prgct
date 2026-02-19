@@ -9,14 +9,12 @@ use Illuminate\Support\Facades\Cache;
 
 class CachedPostRepository implements PostRepositoryInterface
 {
-    public function __construct(private readonly PostRepositoryInterface $repository)
-    {
-
-    }
+    public function __construct(private readonly PostRepositoryInterface $repository) {}
 
     public function getAll(array $fields = ['*']): Collection
     {
-        $cacheKey = 'post' . md5(json_encode($fields));
+        $cacheKey = 'post'.md5(json_encode($fields));
+
         return Cache::tags(['posts'])->remember($cacheKey, now()->addDay(), function () use ($fields) {
             return $this->repository->getAll($fields);
         });
@@ -24,7 +22,8 @@ class CachedPostRepository implements PostRepositoryInterface
 
     public function findById(int $id): ?Post
     {
-        $cacheKey = 'post' . md5(json_encode($id));
+        $cacheKey = 'post'.md5(json_encode($id));
+
         return Cache::tags(['posts'])->remember($cacheKey, 60, function () use ($id) {
             return $this->repository->findById($id);
         });
@@ -34,12 +33,14 @@ class CachedPostRepository implements PostRepositoryInterface
     {
         $post = $this->repository->update($post, $data);
         Cache::tags(['posts'])->flush();
+
         return $post;
     }
 
     public function delete(Post $post): bool
     {
         Cache::tags(['posts'])->flush();
+
         return $post->delete();
     }
 
@@ -50,6 +51,7 @@ class CachedPostRepository implements PostRepositoryInterface
         if ($user) {
             return $user->posts()->create($data);
         }
+
         return null;
     }
 
@@ -57,6 +59,7 @@ class CachedPostRepository implements PostRepositoryInterface
     {
         $post = $this->repository->create($data);
         Cache::tags(['posts'])->flush();
+
         return $post;
     }
 
@@ -64,6 +67,7 @@ class CachedPostRepository implements PostRepositoryInterface
     {
         $post = $this->repository->createComment($post, $user_id, $text);
         Cache::tags(['posts'])->flush();
+
         return $post;
     }
 }
